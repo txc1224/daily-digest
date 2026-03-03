@@ -27,4 +27,8 @@ jobs:
         run: python main.py
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
-          WEATHER_CITY: ${{ secrets.WEATHER_CITY }}   # 城市英文名，如 Beijing / Shanghai
+          WEATHER_CITY: ${{ secrets.WEATHER_CITY }}              # 城市英文名，如 Beijing / Shanghai
+          # 可选：AI 摘要功能（无 API Key 时会使用本地规则生成摘要）
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # 可选：Product Hunt API Token（无 Token 时会使用 RSS 备用方案）
+          PRODUCT_HUNT_TOKEN: ${{ secrets.PRODUCT_HUNT_TOKEN }}

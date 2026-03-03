@@ -11,7 +11,7 @@ FINANCE_FEEDS = [
 ]
 
 
-def fetch_finance(limit: int = 5) -> List[dict]:
+def fetch_finance(limit: int = 10) -> List[dict]:
     """从财经 RSS 源抓取财经资讯，去重后取前 limit 条"""
     items = []
     seen_titles = set()

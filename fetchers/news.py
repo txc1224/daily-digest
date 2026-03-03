@@ -15,10 +15,15 @@ RSS_FEEDS = {
         "https://techcrunch.com/feed/",                                 # TechCrunch
         "https://www.technologyreview.com/feed/",                       # MIT Tech Review
     ],
+    "开发者": [
+        "https://dev.to/feed",                                          # DEV Community
+        "https://www.smashingmagazine.com/feed/",                       # Smashing Magazine
+        "https://css-tricks.com/feed/",                                 # CSS-Tricks
+    ],
 }
 
 
-def fetch_news(feed_urls: List[str], limit: int = 5) -> List[dict]:
+def fetch_news(feed_urls: List[str], limit: int = 10) -> List[dict]:
     """从多个 RSS 源抓取新闻，去重后取前 limit 条"""
     items = []
     seen_titles = set()
