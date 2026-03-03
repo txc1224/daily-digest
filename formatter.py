@@ -189,10 +189,12 @@ def build_card(
         for i, topic in enumerate(hot_topics[:3], 1):
             topic_name = topic['topic']
             count = topic['count']
+            related_news = topic.get('related_news', [])
+            display_count = min(len(related_news), count)
             hot_lines.append(f"🔥 **{topic_name}** ({count}篇相关)")
 
-            # 显示相关新闻标题（带摘要）
-            for news in topic['related_news'][:2]:
+            # 显示相关新闻标题（带摘要），最多显示3条
+            for news in related_news[:3]:
                 title = news.get('title', '')
                 summary = news.get('summary', '')
                 if summary:
