@@ -70,6 +70,7 @@ def fetch_weather() -> dict:
     wind_dir = dirs[round(wind_deg / 22.5) % 16]
 
     return {
+        "city": city,
         "text": WMO_CODE.get(wmo, f"天气码{wmo}"),
         "temp": str(round(data["temperature_2m"])),
         "feelsLike": str(round(data["apparent_temperature"])),

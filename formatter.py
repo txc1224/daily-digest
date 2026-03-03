@@ -28,7 +28,7 @@ def build_card(weather: dict, all_news: dict, finance_news: list) -> dict:
     # ── 天气 ──────────────────────────────────────────────────
     w = weather
     weather_text = (
-        f"🌤 **天气**：{w['text']}  {w['temp']}°C（体感 {w['feelsLike']}°C）\n"
+        f"🌤 **天气**：{w.get('city', 'Beijing')}  {w['text']}  {w['temp']}°C（体感 {w['feelsLike']}°C）\n"
         f"💨 {w['windDir']} {w['windScale']}级　💧 湿度 {w['humidity']}%"
     )
     elements.append({
