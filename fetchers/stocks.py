@@ -81,3 +81,24 @@ def format_stock_line(stock: dict) -> str:
     sign = "+" if change >= 0 else ""
 
     return f"{emoji} **{name}**: {price} ({sign}{change}, {sign}{change_pct}%)"
+
+
+def fetch_commodities() -> List[dict]:
+    """
+    获取大宗商品行情。
+    包括：WTI原油、黄金、白银。
+    """
+    commodities = [
+        ("CL=F", "WTI原油", "USD"),   # WTI Crude Oil
+        ("GC=F", "黄金", "USD"),       # Gold
+        ("SI=F", "白银", "USD"),       # Silver
+    ]
+
+    results = []
+    for symbol, name, currency in commodities:
+        quote = fetch_stock_quote(symbol, name)
+        if quote:
+            quote["currency"] = currency
+            results.append(quote)
+
+    return results

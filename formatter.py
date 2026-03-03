@@ -5,7 +5,7 @@ from typing import List
 WEEKDAY_CN = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
 
 
-def build_card(weather: dict, all_news: dict, finance_news: list, stocks: List[dict]) -> dict:
+def build_card(weather: dict, all_news: dict, finance_news: list, stocks: List[dict], commodities: List[dict]) -> dict:
     """
     组装飞书交互卡片（card JSON）。
     使用 div + markdown 标签拼接内容，兼容飞书机器人卡片格式。
@@ -54,6 +54,27 @@ def build_card(weather: dict, all_news: dict, finance_news: list, stocks: List[d
             "text": {
                 "tag": "lark_md",
                 "content": f"📊 **全球股市**\n{stock_text}",
+            }
+        })
+        elements.append({"tag": "hr"})
+
+    # ── 大宗商品 ──────────────────────────────────────────────
+    if commodities:
+        comm_lines = []
+        for comm in commodities:
+            emoji = "📈" if comm["change"] >= 0 else "📉"
+            sign = "+" if comm["change"] >= 0 else ""
+            unit = "美元/桶" if "原油" in comm["name"] else "美元/盎司"
+            comm_lines.append(
+                f"{emoji} **{comm['name']}**: {comm['price']} "
+                f"({sign}{comm['change_pct']}%)"
+            )
+        comm_text = "\n".join(comm_lines)
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"🛢 **大宗商品**\n{comm_text}",
             }
         })
         elements.append({"tag": "hr"})
