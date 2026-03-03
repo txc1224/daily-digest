@@ -1,0 +1,31 @@
+name: Daily Digest
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # UTC 00:00 = 北京时间 08:00
+  workflow_dispatch:        # 支持手动触发，方便测试
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run daily digest
+        run: python main.py
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          QWEATHER_KEY: ${{ secrets.QWEATHER_KEY }}
+          QWEATHER_LOCATION: ${{ secrets.QWEATHER_LOCATION }}
