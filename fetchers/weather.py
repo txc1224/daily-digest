@@ -47,7 +47,7 @@ def fetch_weather() -> dict:
     使用 Open-Meteo API 获取当前天气（完全免费，无需 API Key，不限制云端 IP）。
     城市通过 WEATHER_CITY 环境变量配置（英文名），默认 Beijing。
     """
-    city = os.environ.get("WEATHER_CITY", "Beijing")
+    city = os.environ.get("WEATHER_CITY", "").strip() or "Beijing"
     lat, lon = _get_coords(city)
 
     url = "https://api.open-meteo.com/v1/forecast"
