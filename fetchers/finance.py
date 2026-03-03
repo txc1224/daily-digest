@@ -2,9 +2,10 @@ import feedparser
 from typing import List
 
 
+# 使用境外可访问的财经 RSS 源
 FINANCE_FEEDS = [
-    "http://feed.eastmoney.com/roll_yw.xml",   # 东方财富·要闻
-    "https://rsshub.app/gelonghui/home",        # 格隆汇
+    "https://feeds.content.dowjones.io/public/rss/mw_realtimeheadlines",  # MarketWatch
+    "https://www.investing.com/rss/news.rss",                              # Investing.com
 ]
 
 

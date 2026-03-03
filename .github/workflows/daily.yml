@@ -27,5 +27,4 @@ jobs:
         run: python main.py
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
-          QWEATHER_KEY: ${{ secrets.QWEATHER_KEY }}
-          QWEATHER_LOCATION: ${{ secrets.QWEATHER_LOCATION }}
+          WEATHER_CITY: ${{ secrets.WEATHER_CITY }}   # 城市英文名，如 Beijing / Shanghai

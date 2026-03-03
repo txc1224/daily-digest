@@ -2,14 +2,15 @@ import feedparser
 from typing import List
 
 
+# 全部使用境外服务器可正常访问的 RSS 源
 RSS_FEEDS = {
     "时事": [
-        "https://www.zaobao.com/rss/realtime/china",       # 联合早报·中国
-        "https://rsshub.app/xinhua/world",                  # 新华社·国际
+        "https://feeds.bbci.co.uk/zhongwen/simp/rss.xml",   # BBC 中文
+        "https://rthk9.rthk.hk/rthk/news/rss/c_expressnews_clocal.xml",  # 香港电台
     ],
     "科技/AI": [
-        "https://36kr.com/feed",                           # 36氪
-        "https://hnrss.org/frontpage",                     # Hacker News 首页
+        "https://hnrss.org/frontpage",                       # Hacker News
+        "https://www.technologyreview.com/feed/",            # MIT Tech Review
     ],
 }
 
@@ -26,7 +27,6 @@ def fetch_news(feed_urls: List[str], limit: int = 5) -> List[dict]:
                 if title and link:
                     items.append({"title": title, "link": link})
         except Exception:
-            # 单个源失败不影响整体
             continue
     return items[:limit]
 
