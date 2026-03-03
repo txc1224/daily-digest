@@ -2,6 +2,7 @@ import sys
 from fetchers.weather import fetch_weather
 from fetchers.news import fetch_all_news
 from fetchers.finance import fetch_finance
+from fetchers.stocks import fetch_major_indices
 from formatter import build_card
 from sender import send_to_feishu
 
@@ -15,6 +16,16 @@ def main() -> None:
         print(f"  ⚠️  天气获取失败: {e}", file=sys.stderr)
         weather = {"text": "获取失败", "temp": "--", "feelsLike": "--",
                    "windDir": "--", "windScale": "--", "humidity": "--"}
+
+    print("📡 正在获取股市行情...")
+    try:
+        stocks = fetch_major_indices()
+        for s in stocks:
+            emoji = "📈" if s["change"] >= 0 else "📉"
+            print(f"  {emoji} {s['name']}: {s['price']} ({s['change_pct']}%)")
+    except Exception as e:
+        print(f"  ⚠️  股市获取失败: {e}", file=sys.stderr)
+        stocks = []
 
     print("📡 正在获取新闻...")
     try:
@@ -34,7 +45,7 @@ def main() -> None:
         finance_news = []
 
     print("📨 正在推送到飞书...")
-    card = build_card(weather, all_news, finance_news)
+    card = build_card(weather, all_news, finance_news, stocks)
     send_to_feishu(card)
     print("推送成功 ✅")
 

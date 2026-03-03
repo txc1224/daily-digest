@@ -1,10 +1,11 @@
 from datetime import datetime
+from typing import List
 
 
 WEEKDAY_CN = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
 
 
-def build_card(weather: dict, all_news: dict, finance_news: list) -> dict:
+def build_card(weather: dict, all_news: dict, finance_news: list, stocks: List[dict]) -> dict:
     """
     组装飞书交互卡片（card JSON）。
     使用 div + markdown 标签拼接内容，兼容飞书机器人卡片格式。
@@ -29,13 +30,33 @@ def build_card(weather: dict, all_news: dict, finance_news: list) -> dict:
     w = weather
     weather_text = (
         f"🌤 **天气**：{w.get('city', 'Beijing')}  {w['text']}  {w['temp']}°C（体感 {w['feelsLike']}°C）\n"
-        f"💨 {w['windDir']} {w['windScale']}级　💧 湿度 {w['humidity']}%"
+        f"💨 {w['windDir']} {w['windScale']}　💧 湿度 {w['humidity']}%"
     )
     elements.append({
         "tag": "div",
         "text": {"tag": "lark_md", "content": weather_text}
     })
     elements.append({"tag": "hr"})
+
+    # ── 股市行情 ──────────────────────────────────────────────
+    if stocks:
+        stock_lines = []
+        for stock in stocks:
+            emoji = "📈" if stock["change"] >= 0 else "📉"
+            sign = "+" if stock["change"] >= 0 else ""
+            stock_lines.append(
+                f"{emoji} **{stock['name']}**: {stock['price']} "
+                f"({sign}{stock['change']}, {sign}{stock['change_pct']}%)"
+            )
+        stock_text = "\n".join(stock_lines)
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"📊 **全球股市**\n{stock_text}",
+            }
+        })
+        elements.append({"tag": "hr"})
 
     # ── 新闻各分类 ────────────────────────────────────────────
     emoji_map = {"时事": "📰", "科技/AI": "🤖"}
