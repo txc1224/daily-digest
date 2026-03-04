@@ -330,3 +330,146 @@ def build_card(
         },
         "elements": elements,
     }
+
+
+def build_stock_card(
+    title: str,
+    focus_stock: Optional[dict] = None,
+    us_stocks: Optional[List[dict]] = None,
+    stocks: Optional[List[dict]] = None,
+    commodities: Optional[List[dict]] = None,
+    forex_rates: Optional[Dict] = None,
+    time_desc: str = ""
+) -> dict:
+    """
+    组装股市简报卡片
+    """
+    now = datetime.now()
+    weekday = WEEKDAY_CN[now.weekday()]
+    today = now.strftime(f"%Y-%m-%d {weekday}")
+
+    elements = []
+
+    # ── 标题 ──────────────────────────────────────────────────
+    elements.append({
+        "tag": "div",
+        "text": {
+            "tag": "lark_md",
+            "content": f"**{title} · {today} {time_desc}**",
+        }
+    })
+    elements.append({"tag": "hr"})
+
+    # ── 重点关注指数 ───────────────────────────────────────────
+    if focus_stock:
+        emoji = "📈" if focus_stock["change"] >= 0 else "📉"
+        sign = "+" if focus_stock["change"] >= 0 else ""
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"{emoji} **{focus_stock['name']}**: {focus_stock['price']} "
+                          f"({sign}{focus_stock['change']}, {sign}{focus_stock['change_pct']}%)"
+            }
+        })
+        elements.append({"tag": "hr"})
+
+    # ── 美股行情 ──────────────────────────────────────────────
+    if us_stocks:
+        stock_lines = []
+        for stock in us_stocks:
+            emoji = "📈" if stock["change"] >= 0 else "📉"
+            sign = "+" if stock["change"] >= 0 else ""
+            stock_lines.append(
+                f"{emoji} **{stock['name']}**: {stock['price']} "
+                f"({sign}{stock['change']}, {sign}{stock['change_pct']}%)"
+            )
+        stock_text = "\n".join(stock_lines)
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"🇺🇸 **美股行情**\n{stock_text}",
+            }
+        })
+        elements.append({"tag": "hr"})
+
+    # ── 全球股市（晚间模式）────────────────────────────────────
+    if stocks and not focus_stock:
+        stock_lines = []
+        for stock in stocks:
+            emoji = "📈" if stock["change"] >= 0 else "📉"
+            sign = "+" if stock["change"] >= 0 else ""
+            flag = "🇺🇸" if stock['name'] in ['标普500', '纳斯达克', '道琼斯'] else "🇭🇰" if stock['name'] == '恒生指数' else "🇨🇳"
+            stock_lines.append(
+                f"{flag} {emoji} **{stock['name']}**: {stock['price']} "
+                f"({sign}{stock['change']}, {sign}{stock['change_pct']}%)"
+            )
+        stock_text = "\n".join(stock_lines)
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"📊 **全球股市收盘**\n{stock_text}",
+            }
+        })
+        elements.append({"tag": "hr"})
+
+    # ── 汇率 ──────────────────────────────────────────────────
+    if forex_rates and any(forex_rates.values()):
+        forex_lines = []
+        for pair, rate in forex_rates.items():
+            if rate:
+                emoji = "📈" if rate.get("change", 0) >= 0 else "📉"
+                sign = "+" if rate.get("change", 0) >= 0 else ""
+                forex_lines.append(
+                    f"{emoji} **{pair}**: {rate['rate']} "
+                    f"({sign}{rate.get('change_pct', 0)}%)"
+                )
+        forex_text = "\n".join(forex_lines)
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"💱 **汇率**\n{forex_text}",
+            }
+        })
+        elements.append({"tag": "hr"})
+
+    # ── 大宗商品 ──────────────────────────────────────────────
+    if commodities:
+        comm_lines = []
+        for comm in commodities:
+            emoji = "📈" if comm["change"] >= 0 else "📉"
+            sign = "+" if comm["change"] >= 0 else ""
+            comm_lines.append(
+                f"{emoji} **{comm['name']}**: {comm['price']} "
+                f"({sign}{comm['change_pct']}%)"
+            )
+        comm_text = "\n".join(comm_lines)
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"🛢 **大宗商品**\n{comm_text}",
+            }
+        })
+        elements.append({"tag": "hr"})
+
+    # ── 底部注脚 ──────────────────────────────────────────────
+    elements.append({
+        "tag": "note",
+        "elements": [{
+            "tag": "plain_text",
+            "content": f"由 GitHub Actions 自动推送 · {time_desc}"
+        }]
+    })
+
+    return {
+        "config": {"wide_screen_mode": True},
+        "header": {
+            "title": {"tag": "plain_text", "content": "📈 股市简报"},
+            "template": "orange",
+        },
+        "elements": elements,
+    }

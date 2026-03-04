@@ -1,4 +1,5 @@
 import sys
+import argparse
 from fetchers.weather import fetch_weather
 from fetchers.news import fetch_all_news
 from fetchers.finance import fetch_finance
@@ -11,11 +12,12 @@ from ai.summarizer import batch_summarize_efficient
 from ai.clustering import cluster_news, generate_hot_topics_summary
 from ai.sentiment import analyze_finance_sentiment, analyze_news_sentiment
 from ai.translator import translate_news_batch
-from formatter import build_card
+from formatter import build_card, build_stock_card
 from sender import send_to_feishu
 
 
-def main() -> None:
+def run_daily_digest():
+    """运行完整的每日简报"""
     # ============ 基础数据 ============
     print("📡 正在获取天气...")
     try:
@@ -104,7 +106,6 @@ def main() -> None:
     try:
         product_hunt = fetch_product_hunt_trending(limit=10)
         if not product_hunt:
-            # 尝试备用方案
             product_hunt = fetch_product_hunt_fallback(limit=10)
         print(f"  ✅ Product Hunt: {len(product_hunt)} 条")
     except Exception as e:
@@ -112,10 +113,8 @@ def main() -> None:
         product_hunt = []
 
     # ============ AI 增强功能 ============
-    # 1. 翻译英文新闻标题
     print("🤖 正在翻译新闻标题...")
     try:
-        # 翻译时事和科技新闻（如果是英文）
         if "时事" in all_news and all_news["时事"]:
             all_news["时事"] = translate_news_batch(all_news["时事"], max_items=10)
             print(f"  ✅ 时事新闻翻译完成")
@@ -124,22 +123,18 @@ def main() -> None:
             all_news["科技/AI"] = translate_news_batch(all_news["科技/AI"], max_items=10)
             print(f"  ✅ 科技新闻翻译完成")
 
-        # 翻译开发者新闻
         if "开发者" in all_news and all_news["开发者"]:
             all_news["开发者"] = translate_news_batch(all_news["开发者"], max_items=10)
             print(f"  ✅ 开发者新闻翻译完成")
 
-        # 翻译财经新闻
         if finance_news:
             finance_news = translate_news_batch(finance_news, max_items=5)
             print(f"  ✅ 财经新闻翻译完成")
     except Exception as e:
         print(f"  ⚠️  新闻翻译失败: {e}", file=sys.stderr)
 
-    # 2. 新闻摘要
     print("🤖 正在生成新闻摘要...")
     try:
-        # 为时事和科技新闻生成摘要
         if "时事" in all_news and all_news["时事"]:
             all_news["时事"] = batch_summarize_efficient(all_news["时事"], max_items=10)
             print(f"  ✅ 时事新闻摘要生成完成")
@@ -148,18 +143,15 @@ def main() -> None:
             all_news["科技/AI"] = batch_summarize_efficient(all_news["科技/AI"], max_items=10)
             print(f"  ✅ 科技新闻摘要生成完成")
 
-        # 为财经新闻生成摘要
         if finance_news:
             finance_news = batch_summarize_efficient(finance_news, max_items=10)
             print(f"  ✅ 财经新闻摘要生成完成")
     except Exception as e:
         print(f"  ⚠️  新闻摘要生成失败: {e}", file=sys.stderr)
 
-    # 2. 热点聚类
     print("🤖 正在进行热点聚类...")
     hot_topics = []
     try:
-        # 合并所有新闻进行聚类
         all_items = []
         for items in all_news.values():
             all_items.extend(items)
@@ -175,11 +167,9 @@ def main() -> None:
     except Exception as e:
         print(f"  ⚠️  热点聚类失败: {e}", file=sys.stderr)
 
-    # 3. 情感分析
     print("🤖 正在进行情感分析...")
     sentiment_result = None
     try:
-        # 分析财经新闻情感
         sentiment_result = analyze_finance_sentiment(finance_news)
         print(f"  ✅ 情感分析: {sentiment_result['summary']}")
     except Exception as e:
@@ -204,6 +194,98 @@ def main() -> None:
     )
     send_to_feishu(card)
     print("推送成功 ✅")
+
+
+def run_stock_morning():
+    """A股开盘推送：上证指数 + 隔夜美股收盘"""
+    print("📈 A股开盘简报")
+
+    # 获取上证指数
+    from fetchers.stocks import fetch_stock_quote
+    sh_index = fetch_stock_quote("000001.SS", "上证指数")
+
+    # 获取隔夜美股
+    sp500 = fetch_stock_quote("^GSPC", "标普500")
+    nasdaq = fetch_stock_quote("^IXIC", "纳斯达克")
+    dow = fetch_stock_quote("^DJI", "道琼斯")
+
+    us_stocks = [s for s in [sp500, nasdaq, dow] if s]
+
+    card = build_stock_card(
+        title="📈 A股开盘简报",
+        focus_stock=sh_index,
+        us_stocks=us_stocks,
+        time_desc="09:30"
+    )
+    send_to_feishu(card)
+    print("推送成功 ✅")
+
+
+def run_stock_afternoon():
+    """港股收盘推送：恒生指数 + 实时美股"""
+    print("📈 港股收盘简报")
+
+    # 获取恒生指数
+    from fetchers.stocks import fetch_stock_quote
+    hsi = fetch_stock_quote("^HSI", "恒生指数")
+
+    # 获取美股实时（盘中）
+    sp500 = fetch_stock_quote("^GSPC", "标普500")
+    nasdaq = fetch_stock_quote("^IXIC", "纳斯达克")
+    dow = fetch_stock_quote("^DJI", "道琼斯")
+
+    us_stocks = [s for s in [sp500, nasdaq, dow] if s]
+
+    card = build_stock_card(
+        title="📈 港股收盘简报",
+        focus_stock=hsi,
+        us_stocks=us_stocks,
+        time_desc="16:00"
+    )
+    send_to_feishu(card)
+    print("推送成功 ✅")
+
+
+def run_stock_evening():
+    """美股收盘推送：美股指数 + 大宗商品 + 汇率"""
+    print("📈 美股收盘简报")
+
+    # 获取美股收盘
+    stocks = fetch_major_indices()
+
+    # 获取大宗商品
+    commodities = fetch_commodities()
+
+    # 获取汇率
+    forex_rates = fetch_all_forex_rates()
+    valid_rates = {k: v for k, v in forex_rates.items() if v}
+
+    card = build_stock_card(
+        title="📈 美股收盘简报",
+        stocks=stocks,
+        commodities=commodities,
+        forex_rates=valid_rates,
+        time_desc="04:00+1"
+    )
+    send_to_feishu(card)
+    print("推送成功 ✅")
+
+
+def main():
+    parser = argparse.ArgumentParser(description='每日简报推送')
+    parser.add_argument('--mode', type=str, default='daily',
+                        choices=['daily', 'stock-morning', 'stock-afternoon', 'stock-evening'],
+                        help='运行模式：daily(完整简报), stock-morning(A股开盘), stock-afternoon(港股收盘), stock-evening(美股收盘)')
+    args = parser.parse_args()
+
+    if args.mode == 'daily':
+        run_daily_digest()
+    elif args.mode == 'stock-morning':
+        run_stock_morning()
+    elif args.mode == 'stock-afternoon':
+        run_stock_afternoon()
+    elif args.mode == 'stock-evening':
+        run_stock_evening()
 
 
 if __name__ == "__main__":
