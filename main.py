@@ -10,6 +10,7 @@ from fetchers.product_hunt import fetch_product_hunt_trending, fetch_product_hun
 from ai.summarizer import batch_summarize_efficient
 from ai.clustering import cluster_news, generate_hot_topics_summary
 from ai.sentiment import analyze_finance_sentiment, analyze_news_sentiment
+from ai.translator import translate_news_batch
 from formatter import build_card
 from sender import send_to_feishu
 
@@ -111,7 +112,21 @@ def main() -> None:
         product_hunt = []
 
     # ============ AI 增强功能 ============
-    # 1. 新闻摘要
+    # 1. 翻译英文新闻标题
+    print("🤖 正在翻译新闻标题...")
+    try:
+        # 翻译时事和科技新闻（如果是英文）
+        if "时事" in all_news and all_news["时事"]:
+            all_news["时事"] = translate_news_batch(all_news["时事"], max_items=10)
+            print(f"  ✅ 时事新闻翻译完成")
+
+        if "科技/AI" in all_news and all_news["科技/AI"]:
+            all_news["科技/AI"] = translate_news_batch(all_news["科技/AI"], max_items=10)
+            print(f"  ✅ 科技新闻翻译完成")
+    except Exception as e:
+        print(f"  ⚠️  新闻翻译失败: {e}", file=sys.stderr)
+
+    # 2. 新闻摘要
     print("🤖 正在生成新闻摘要...")
     try:
         # 为时事和科技新闻生成摘要
