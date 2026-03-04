@@ -123,6 +123,16 @@ def main() -> None:
         if "科技/AI" in all_news and all_news["科技/AI"]:
             all_news["科技/AI"] = translate_news_batch(all_news["科技/AI"], max_items=10)
             print(f"  ✅ 科技新闻翻译完成")
+
+        # 翻译开发者新闻
+        if "开发者" in all_news and all_news["开发者"]:
+            all_news["开发者"] = translate_news_batch(all_news["开发者"], max_items=10)
+            print(f"  ✅ 开发者新闻翻译完成")
+
+        # 翻译财经新闻
+        if finance_news:
+            finance_news = translate_news_batch(finance_news, max_items=5)
+            print(f"  ✅ 财经新闻翻译完成")
     except Exception as e:
         print(f"  ⚠️  新闻翻译失败: {e}", file=sys.stderr)
 
