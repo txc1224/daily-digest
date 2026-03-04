@@ -601,7 +601,9 @@ def build_analysis_card(
             elements.append({"tag": "hr"})
             gainers_lines = ["**🚀 领涨股**"]
             for g in analysis["top_gainers"]:
-                gainers_lines.append(f"• {g['name']}: +{g['change_pct']}%")
+                name = g.get('cn_name', g['name'])
+                code = g['name']
+                gainers_lines.append(f"• {name} ({code}): +{g['change_pct']}%")
             elements.append({
                 "tag": "div",
                 "text": {
@@ -615,7 +617,9 @@ def build_analysis_card(
             elements.append({"tag": "hr"})
             losers_lines = ["**📉 领跌股**"]
             for l in analysis["top_losers"]:
-                losers_lines.append(f"• {l['name']}: {l['change_pct']}%")
+                name = l.get('cn_name', l['name'])
+                code = l['name']
+                losers_lines.append(f"• {name} ({code}): {l['change_pct']}%")
             elements.append({
                 "tag": "div",
                 "text": {
@@ -631,7 +635,9 @@ def build_analysis_card(
             for s in analysis["stocks"]:
                 emoji = "📈" if s["change"] >= 0 else "📉"
                 sign = "+" if s["change"] >= 0 else ""
-                stocks_lines.append(f"{emoji} {s['name']}: {s['price']} ({sign}{s['change_pct']}%)")
+                name = s.get('cn_name', s['name'])
+                code = s['name']
+                stocks_lines.append(f"{emoji} {name} ({code}): {s['price']} ({sign}{s['change_pct']}%)")
             elements.append({
                 "tag": "div",
                 "text": {
