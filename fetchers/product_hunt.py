@@ -4,6 +4,79 @@ from typing import List, Optional
 from datetime import datetime
 
 
+# Product Hunt 常见词汇翻译
+PH_WORDS = {
+    # 动词
+    "build": "构建",
+    "create": "创建",
+    "generate": "生成",
+    "convert": "转换",
+    "automate": "自动化",
+    "manage": "管理",
+    "track": "追踪",
+    "organize": "整理",
+    "schedule": "安排",
+    "collaborate": "协作",
+    "share": "分享",
+    "discover": "发现",
+    "explore": "探索",
+    "learn": "学习",
+    "teach": "教学",
+    # 名词
+    "app": "应用",
+    "tool": "工具",
+    "platform": "平台",
+    "assistant": "助手",
+    "bot": "机器人",
+    "ai": "AI",
+    "chrome extension": "浏览器插件",
+    "widget": "小组件",
+    "dashboard": "仪表盘",
+    "template": "模板",
+    "workflow": "工作流",
+    "note": "笔记",
+    "document": "文档",
+    "meeting": "会议",
+    "email": "邮件",
+    "chat": "聊天",
+    "search": "搜索",
+    "analytics": "数据分析",
+    # 形容词
+    "free": "免费",
+    "open source": "开源",
+    "ai-powered": "AI驱动",
+    "smart": "智能",
+    "simple": "简单",
+    "easy": "简易",
+    "fast": "快速",
+    "better": "更好的",
+    "ultimate": "终极",
+    "all-in-one": "一站式",
+}
+
+
+def translate_ph_tagline(tagline: str) -> str:
+    """简单翻译 Product Hunt 标语"""
+    if not tagline:
+        return "新产品"
+
+    tagline_lower = tagline.lower()
+
+    # 提取关键词
+    keywords = []
+    for en, cn in PH_WORDS.items():
+        if en in tagline_lower:
+            keywords.append(cn)
+
+    if keywords:
+        return "、".join(keywords[:3]) + "工具"
+
+    # 如果无法翻译，返回简化版
+    if len(tagline) > 40:
+        return tagline[:37] + "..."
+    return tagline
+
+
 def has_ph_token() -> bool:
     """检查是否有 Product Hunt Token"""
     return bool(os.environ.get("PRODUCT_HUNT_TOKEN", ""))
@@ -78,12 +151,13 @@ def fetch_product_hunt_trending(limit: int = 10) -> List[dict]:
                 for t in node.get("topics", {}).get("edges", [])
             ]
 
+            raw_tagline = node.get("tagline", "")
             results.append({
                 "name": node.get("name", ""),
-                "tagline": node.get("tagline", ""),
+                "tagline": translate_ph_tagline(raw_tagline),
                 "url": node.get("url", ""),
                 "votes": node.get("votesCount", 0),
-                "topics": topics[:3],  # 只取前3个话题
+                "topics": topics[:3],
             })
 
         return results
@@ -109,11 +183,12 @@ def fetch_product_hunt_fallback(limit: int = 10) -> List[dict]:
         results = []
 
         for entry in d.entries[:limit]:
+            raw_desc = entry.get("description", "")
             results.append({
                 "name": entry.get("title", ""),
-                "tagline": entry.get("description", "")[:100],
+                "tagline": translate_ph_tagline(raw_desc),
                 "url": entry.get("link", ""),
-                "votes": 0,  # RSS 不包含票数
+                "votes": 0,
                 "topics": [],
             })
 
