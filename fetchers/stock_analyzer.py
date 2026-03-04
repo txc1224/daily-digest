@@ -1,139 +1,9 @@
 """
-股票/板块分析模块
-提供技术分析、基本面分析和新闻情绪分析
+股票/板块分析模块 - 支持任意股票和板块
 """
 import requests
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from datetime import datetime, timedelta
-
-
-# 板块映射
-SECTOR_STOCKS = {
-    "科技": {
-        "US": ["AAPL", "MSFT", "GOOGL", "NVDA", "META", "TSLA", "AMD", "INTC"],
-        "HK": ["0700.HK", "3690.HK", "9988.HK", "9618.HK", "1024.HK", "9866.HK"],
-        "CN": ["002415.SZ", "000938.SZ", "600570.SS", "002230.SZ", "300750.SZ"],
-    },
-    "金融": {
-        "US": ["JPM", "BAC", "WFC", "GS", "MS", "C", "BLK"],
-        "HK": ["1299.HK", "2318.HK", "0005.HK", "1398.HK", "3988.HK"],
-        "CN": ["600036.SS", "601398.SS", "601288.SS", "601988.SS", "601318.SS"],
-    },
-    "医药": {
-        "US": ["JNJ", "PFE", "UNH", "ABBV", "MRK", "LLY"],
-        "HK": ["1093.HK", "2269.HK", "6185.HK", "2359.HK", "1877.HK"],
-        "CN": ["600276.SS", "300760.SZ", "603259.SS", "000661.SZ"],
-    },
-    "新能源": {
-        "US": ["TSLA", "ENPH", "SEDG", "FSLR", "NXT"],
-        "HK": ["9866.HK", "1211.HK", "9868.HK", "2015.HK"],
-        "CN": ["300750.SZ", "002594.SZ", "601012.SS", "300014.SZ"],
-    },
-    "消费": {
-        "US": ["AMZN", "WMT", "HD", "COST", "NKE", "MCD"],
-        "HK": ["2319.HK", "0291.HK", "2020.HK", "1876.HK"],
-        "CN": ["600519.SS", "000858.SZ", "002714.SZ", "603288.SS"],
-    },
-}
-
-# 股票代码对应的中文名称映射
-STOCK_NAMES = {
-    # 美股科技
-    "AAPL": "苹果",
-    "MSFT": "微软",
-    "GOOGL": "谷歌",
-    "NVDA": "英伟达",
-    "META": "Meta",
-    "TSLA": "特斯拉",
-    "AMD": "AMD",
-    "INTC": "英特尔",
-    # 美股金融
-    "JPM": "摩根大通",
-    "BAC": "美国银行",
-    "WFC": "富国银行",
-    "GS": "高盛",
-    "MS": "摩根士丹利",
-    "C": "花旗集团",
-    "BLK": "贝莱德",
-    # 美股医药
-    "JNJ": "强生",
-    "PFE": "辉瑞",
-    "UNH": "联合健康",
-    "ABBV": "艾伯维",
-    "MRK": "默克",
-    "LLY": "礼来",
-    # 美股新能源
-    "ENPH": "Enphase",
-    "SEDG": "SolarEdge",
-    "FSLR": "第一太阳能",
-    "NXT": "Nextracker",
-    # 美股消费
-    "AMZN": "亚马逊",
-    "WMT": "沃尔玛",
-    "HD": "家得宝",
-    "COST": "好市多",
-    "NKE": "耐克",
-    "MCD": "麦当劳",
-    # 港股科技
-    "0700.HK": "腾讯控股",
-    "3690.HK": "美团",
-    "9988.HK": "阿里巴巴",
-    "9618.HK": "京东集团",
-    "1024.HK": "快手",
-    "9866.HK": "蔚来汽车",
-    # 港股金融
-    "1299.HK": "友邦保险",
-    "2318.HK": "中国平安",
-    "0005.HK": "汇丰控股",
-    "1398.HK": "工商银行",
-    "3988.HK": "中国银行",
-    # 港股医药
-    "1093.HK": "石药集团",
-    "2269.HK": "药明生物",
-    "6185.HK": "康希诺生物",
-    "2359.HK": "药明康德",
-    "1877.HK": "君实生物",
-    # 港股新能源
-    "1211.HK": "比亚迪",
-    "9868.HK": "小鹏汽车",
-    "2015.HK": "理想汽车",
-    # 港股消费
-    "2319.HK": "蒙牛乳业",
-    "0291.HK": "华润啤酒",
-    "2020.HK": "安踏体育",
-    "1876.HK": "百威亚太",
-    # A股科技
-    "002415.SZ": "海康威视",
-    "000938.SZ": "中国长城",
-    "600570.SS": "恒生电子",
-    "002230.SZ": "科大讯飞",
-    "300750.SZ": "宁德时代",
-    # A股金融
-    "600036.SS": "招商银行",
-    "601398.SS": "工商银行",
-    "601288.SS": "农业银行",
-    "601988.SS": "中国银行",
-    "601318.SS": "中国平安",
-    # A股医药
-    "600276.SS": "恒瑞医药",
-    "300760.SZ": "迈瑞医疗",
-    "603259.SS": "药明康德",
-    "000661.SZ": "长春高新",
-    # A股新能源
-    "002594.SZ": "比亚迪",
-    "601012.SS": "隆基绿能",
-    "300014.SZ": "亿纬锂能",
-    # A股消费
-    "600519.SS": "贵州茅台",
-    "000858.SZ": "五粮液",
-    "002714.SZ": "牧原股份",
-    "603288.SS": "海天味业",
-}
-
-
-def get_stock_name(code: str) -> str:
-    """获取股票的中文名称"""
-    return STOCK_NAMES.get(code, code)
 
 
 def get_stock_symbol(code: str, market: str) -> str:
@@ -233,7 +103,7 @@ def calculate_technical_indicators(history: List[Dict]) -> Dict:
 
 
 def fetch_stock_fundamentals(symbol: str) -> Dict:
-    """获取基本面数据（简化版）"""
+    """获取基本面数据"""
     try:
         url = f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}"
         headers = {
@@ -268,16 +138,15 @@ def fetch_stock_fundamentals(symbol: str) -> Dict:
 
 
 def analyze_stock(stock_code: str, market: str, report_type: str = "full") -> Dict:
-    """分析单只股票"""
+    """分析单只股票 - 支持任意股票代码"""
     from fetchers.stocks import fetch_stock_quote
 
     symbol = get_stock_symbol(stock_code, market)
-    display_name = f"{stock_code} ({market})"
 
     # 获取实时报价
-    quote = fetch_stock_quote(symbol, display_name)
+    quote = fetch_stock_quote(symbol, stock_code)
     if not quote:
-        return {"error": f"无法获取 {stock_code} 的数据"}
+        return {"error": f"无法获取 {stock_code} 的数据，请检查代码是否正确"}
 
     result = {
         "stock_code": stock_code,
@@ -301,38 +170,45 @@ def analyze_stock(stock_code: str, market: str, report_type: str = "full") -> Di
     return result
 
 
-def analyze_sector(sector: str, market: str) -> Dict:
-    """分析板块"""
+def analyze_sector(sector: str, market: str, stock_codes: str = "") -> Dict:
+    """分析板块 - 支持任意板块名称和自定义成分股
+
+    Args:
+        sector: 板块名称（任意字符串）
+        market: 市场（US/HK/CN）
+        stock_codes: 可选，逗号分隔的股票代码列表，如 "AAPL,MSFT,GOOGL"
+    """
     from fetchers.stocks import fetch_stock_quote
 
-    if sector not in SECTOR_STOCKS:
-        return {"error": f"不支持的板块: {sector}"}
+    # 如果用户提供了成分股代码，使用用户的
+    if stock_codes:
+        codes = [code.strip() for code in stock_codes.split(",") if code.strip()]
+    else:
+        # 否则尝试从Yahoo Finance搜索该板块的热门股票
+        # 这里使用一些常见股票作为示例
+        codes = get_default_sector_stocks(sector, market)
 
-    if market not in SECTOR_STOCKS[sector]:
-        return {"error": f"该板块在 {market} 市场没有数据"}
-
-    stocks = SECTOR_STOCKS[sector][market]
+    if not codes:
+        return {"error": f"无法获取 {sector} 板块的成分股，请通过 stock_codes 参数手动提供，如：00700.HK,09988.HK"}
 
     results = []
     gainers = []
     losers = []
 
-    for code in stocks[:5]:  # 取前5只
+    for code in codes[:10]:  # 最多分析10只
         quote = fetch_stock_quote(code, code)
         if quote:
-            # 添加中文名称
-            quote["cn_name"] = get_stock_name(code)
             results.append(quote)
             if quote["change_pct"] > 0:
                 gainers.append(quote)
             else:
                 losers.append(quote)
 
+    if not results:
+        return {"error": f"无法获取 {sector} 板块任何股票的数据，请检查股票代码是否正确"}
+
     # 计算板块平均涨跌幅
-    if results:
-        avg_change = sum([r["change_pct"] for r in results]) / len(results)
-    else:
-        avg_change = 0
+    avg_change = sum([r["change_pct"] for r in results]) / len(results)
 
     # 排序
     gainers.sort(key=lambda x: x["change_pct"], reverse=True)
@@ -346,6 +222,47 @@ def analyze_sector(sector: str, market: str) -> Dict:
         "top_gainers": gainers[:3],
         "top_losers": losers[:3],
     }
+
+
+def get_default_sector_stocks(sector: str, market: str) -> List[str]:
+    """获取默认的板块成分股 - 如果用户没提供，尝试匹配一些常见股票"""
+
+    # 一些常见板块的默认股票
+    defaults = {
+        "科技": {
+            "US": ["AAPL", "MSFT", "GOOGL", "NVDA", "META"],
+            "HK": ["0700.HK", "3690.HK", "9988.HK", "9618.HK", "1024.HK"],
+            "CN": ["002415.SZ", "000938.SZ", "600570.SS", "002230.SZ"],
+        },
+        "金融": {
+            "US": ["JPM", "BAC", "WFC", "GS", "MS"],
+            "HK": ["1299.HK", "2318.HK", "0005.HK", "1398.HK"],
+            "CN": ["600036.SS", "601398.SS", "601288.SS", "601988.SS"],
+        },
+        "医药": {
+            "US": ["JNJ", "PFE", "UNH", "ABBV", "MRK"],
+            "HK": ["1093.HK", "2269.HK", "6185.HK", "2359.HK"],
+            "CN": ["600276.SS", "300760.SZ", "603259.SS", "000661.SZ"],
+        },
+        "新能源": {
+            "US": ["TSLA", "ENPH", "SEDG", "FSLR"],
+            "HK": ["9866.HK", "1211.HK", "9868.HK", "2015.HK"],
+            "CN": ["300750.SZ", "002594.SZ", "601012.SS", "300014.SZ"],
+        },
+        "消费": {
+            "US": ["AMZN", "WMT", "HD", "COST", "NKE"],
+            "HK": ["2319.HK", "0291.HK", "2020.HK", "1876.HK"],
+            "CN": ["600519.SS", "000858.SZ", "002714.SZ", "603288.SS"],
+        },
+    }
+
+    # 尝试匹配
+    for key, stocks in defaults.items():
+        if key in sector or sector in key:
+            return stocks.get(market, [])
+
+    # 如果都不匹配，返回空列表
+    return []
 
 
 def generate_analysis_summary(analysis: Dict) -> str:
@@ -362,9 +279,9 @@ def generate_analysis_summary(analysis: Dict) -> str:
 
         summary = f"{emoji} {sector}板块整体{trend} {abs(avg_change)}%"
 
-        if analysis["top_gainers"]:
+        if analysis.get("top_gainers"):
             top = analysis["top_gainers"][0]
-            summary += f"，领涨股: {top['name']} (+{top['change_pct']}%)"
+            summary += f"，领涨: {top['name']} (+{top['change_pct']:.1f}%)"
 
         return summary
 
@@ -373,10 +290,10 @@ def generate_analysis_summary(analysis: Dict) -> str:
     quote = analysis["quote"]
 
     emoji = "📈" if quote["change"] >= 0 else "📉"
-    summary = f"{emoji} {stock_code}: {quote['price']} ({quote['change_pct']}%)"
+    summary = f"{emoji} {stock_code}: {quote['price']:.2f} ({quote['change_pct']:.2f}%)"
 
     if "technical" in analysis:
         tech = analysis["technical"]
-        summary += f"，趋势: {tech['trend']}，5日涨跌: {tech['change_5d']}%"
+        summary += f"，趋势: {tech['trend']}, 5日: {tech['change_5d']:.1f}%"
 
     return summary

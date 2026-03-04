@@ -278,9 +278,10 @@ def run_stock_analysis(args):
     sector = args.sector
     market = args.market
     report_type = args.report_type
+    stock_codes = args.stock_codes
 
     if stock_code:
-        # 分析单只股票
+        # 分析单只股票 - 支持任意代码
         print(f"📊 正在分析股票: {stock_code} ({market})...")
         analysis = analyze_stock(stock_code, market, report_type)
         if "error" in analysis:
@@ -298,9 +299,9 @@ def run_stock_analysis(args):
         print("推送成功 ✅")
 
     elif sector:
-        # 分析板块
+        # 分析板块 - 支持任意板块名称和自定义成分股
         print(f"📊 正在分析板块: {sector} ({market})...")
-        analysis = analyze_sector(sector, market)
+        analysis = analyze_sector(sector, market, stock_codes)
         if "error" in analysis:
             print(f"  ⚠️  {analysis['error']}")
             return
@@ -333,6 +334,8 @@ def main():
     parser.add_argument('--report-type', type=str, default='full',
                         choices=['full', 'technical', 'fundamental', 'news'],
                         help='报告类型：full(完整)、technical(技术)、fundamental(基本面)')
+    parser.add_argument('--stock-codes', type=str, default='',
+                        help='板块成分股代码（逗号分隔，如：AAPL,MSFT,GOOGL）')
     args = parser.parse_args()
 
     if args.mode == 'daily':

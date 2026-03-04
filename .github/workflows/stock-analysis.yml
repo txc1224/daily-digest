@@ -30,6 +30,10 @@ on:
           - technical
           - fundamental
           - news
+      stock_codes:
+        description: '板块成分股代码（可选，逗号分隔，如：AAPL,MSFT,GOOGL）'
+        required: false
+        default: ''
 
 jobs:
   analyze:
@@ -56,7 +60,8 @@ jobs:
             --stock-code "${{ github.event.inputs.stock_code }}" \
             --sector "${{ github.event.inputs.sector }}" \
             --market "${{ github.event.inputs.market }}" \
-            --report-type "${{ github.event.inputs.report_type }}"
+            --report-type "${{ github.event.inputs.report_type }}" \
+            --stock-codes "${{ github.event.inputs.stock_codes }}"
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
