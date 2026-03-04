@@ -1,0 +1,62 @@
+name: 股票/板块分析报告
+
+on:
+  workflow_dispatch:
+    inputs:
+      stock_code:
+        description: '股票代码（如 AAPL, TSLA, 00700.HK, 000001.SS）'
+        required: false
+        default: ''
+      sector:
+        description: '板块名称（如 科技、金融、医药、新能源）'
+        required: false
+        default: ''
+      market:
+        description: '市场'
+        required: false
+        default: 'US'
+        type: choice
+        options:
+          - US
+          - HK
+          - CN
+      report_type:
+        description: '报告类型'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - technical
+          - fundamental
+          - news
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run stock analysis
+        run: |
+          python main.py \
+            --mode stock-analysis \
+            --stock-code "${{ github.event.inputs.stock_code }}" \
+            --sector "${{ github.event.inputs.sector }}" \
+            --market "${{ github.event.inputs.market }}" \
+            --report-type "${{ github.event.inputs.report_type }}"
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

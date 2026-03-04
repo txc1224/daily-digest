@@ -8,11 +8,12 @@ from fetchers.forex import fetch_all_forex_rates, generate_forex_analysis
 from fetchers.bonds import fetch_bonds_and_vix, generate_bond_vix_analysis
 from fetchers.github_trending import fetch_github_trending
 from fetchers.product_hunt import fetch_product_hunt_trending, fetch_product_hunt_fallback
+from fetchers.stock_analyzer import analyze_stock, analyze_sector, generate_analysis_summary
 from ai.summarizer import batch_summarize_efficient
 from ai.clustering import cluster_news, generate_hot_topics_summary
 from ai.sentiment import analyze_finance_sentiment, analyze_news_sentiment
 from ai.translator import translate_news_batch
-from formatter import build_card, build_stock_card
+from formatter import build_card, build_stock_card, build_analysis_card
 from sender import send_to_feishu
 
 
@@ -271,11 +272,67 @@ def run_stock_evening():
     print("推送成功 ✅")
 
 
+def run_stock_analysis(args):
+    """股票/板块分析报告"""
+    stock_code = args.stock_code
+    sector = args.sector
+    market = args.market
+    report_type = args.report_type
+
+    if stock_code:
+        # 分析单只股票
+        print(f"📊 正在分析股票: {stock_code} ({market})...")
+        analysis = analyze_stock(stock_code, market, report_type)
+        if "error" in analysis:
+            print(f"  ⚠️  {analysis['error']}")
+            return
+
+        print(f"  ✅ 分析完成: {generate_analysis_summary(analysis)}")
+
+        card = build_analysis_card(
+            analysis_type="stock",
+            analysis=analysis,
+            report_type=report_type
+        )
+        send_to_feishu(card)
+        print("推送成功 ✅")
+
+    elif sector:
+        # 分析板块
+        print(f"📊 正在分析板块: {sector} ({market})...")
+        analysis = analyze_sector(sector, market)
+        if "error" in analysis:
+            print(f"  ⚠️  {analysis['error']}")
+            return
+
+        print(f"  ✅ 分析完成: {generate_analysis_summary(analysis)}")
+
+        card = build_analysis_card(
+            analysis_type="sector",
+            analysis=analysis,
+            report_type=report_type
+        )
+        send_to_feishu(card)
+        print("推送成功 ✅")
+    else:
+        print("  ⚠️  请提供股票代码或板块名称")
+
+
 def main():
     parser = argparse.ArgumentParser(description='每日简报推送')
     parser.add_argument('--mode', type=str, default='daily',
-                        choices=['daily', 'stock-morning', 'stock-afternoon', 'stock-evening'],
-                        help='运行模式：daily(完整简报), stock-morning(A股开盘), stock-afternoon(港股收盘), stock-evening(美股收盘)')
+                        choices=['daily', 'stock-morning', 'stock-afternoon', 'stock-evening', 'stock-analysis'],
+                        help='运行模式：daily(完整简报), stock-morning(A股开盘), stock-afternoon(港股收盘), stock-evening(美股收盘), stock-analysis(股票分析)')
+    parser.add_argument('--stock-code', type=str, default='',
+                        help='股票代码（如 AAPL, 00700.HK）')
+    parser.add_argument('--sector', type=str, default='',
+                        help='板块名称（如 科技、金融、医药、新能源）')
+    parser.add_argument('--market', type=str, default='US',
+                        choices=['US', 'HK', 'CN'],
+                        help='市场：US(美股)、HK(港股)、CN(A股)')
+    parser.add_argument('--report-type', type=str, default='full',
+                        choices=['full', 'technical', 'fundamental', 'news'],
+                        help='报告类型：full(完整)、technical(技术)、fundamental(基本面)')
     args = parser.parse_args()
 
     if args.mode == 'daily':
@@ -286,6 +343,8 @@ def main():
         run_stock_afternoon()
     elif args.mode == 'stock-evening':
         run_stock_evening()
+    elif args.mode == 'stock-analysis':
+        run_stock_analysis(args)
 
 
 if __name__ == "__main__":

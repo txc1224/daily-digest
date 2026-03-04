@@ -473,3 +473,187 @@ def build_stock_card(
         },
         "elements": elements,
     }
+
+
+def build_analysis_card(
+    analysis_type: str,
+    analysis: dict,
+    report_type: str = "full"
+) -> dict:
+    """
+    组装股票/板块分析报告卡片
+    """
+    from datetime import datetime
+
+    now = datetime.now()
+    weekday = WEEKDAY_CN[now.weekday()]
+    today = now.strftime(f"%Y-%m-%d {weekday}")
+
+    elements = []
+
+    if analysis_type == "stock":
+        # 股票分析报告
+        stock_code = analysis["stock_code"]
+        market = analysis["market"]
+        quote = analysis["quote"]
+
+        # 标题
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"**📊 股票分析报告 · {stock_code} ({market}) · {today}**",
+            }
+        })
+        elements.append({"tag": "hr"})
+
+        # 实时价格
+        emoji = "📈" if quote["change"] >= 0 else "📉"
+        sign = "+" if quote["change"] >= 0 else ""
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"{emoji} **实时价格**: {quote['price']} "
+                          f"({sign}{quote['change']}, {sign}{quote['change_pct']}%)"
+            }
+        })
+
+        # 技术分析
+        if "technical" in analysis and analysis["technical"]:
+            tech = analysis["technical"]
+            elements.append({"tag": "hr"})
+            elements.append({
+                "tag": "div",
+                "text": {
+                    "tag": "lark_md",
+                    "content": f"**📈 技术分析**\n"
+                              f"• 趋势: {tech.get('trend', '未知')}\n"
+                              f"• 5日均线: {tech.get('ma5', '--')}\n"
+                              f"• 10日均线: {tech.get('ma10', '--')}\n"
+                              f"• 20日均线: {tech.get('ma20', '--')}\n"
+                              f"• 5日涨跌: {tech.get('change_5d', '--')}%\n"
+                              f"• 20日涨跌: {tech.get('change_20d', '--')}%\n"
+                              f"• 波动率: {tech.get('volatility', '--')}%"
+                }
+            })
+
+        # 基本面分析
+        if "fundamentals" in analysis and analysis["fundamentals"]:
+            fund = analysis["fundamentals"]
+            elements.append({"tag": "hr"})
+            elements.append({
+                "tag": "div",
+                "text": {
+                    "tag": "lark_md",
+                    "content": f"**💼 基本面数据**\n"
+                              f"• 市盈率 (PE): {fund.get('pe_ratio', '--')}\n"
+                              f"• 市净率 (PB): {fund.get('pb_ratio', '--')}\n"
+                              f"• 股息率: {fund.get('dividend_yield', '--')}%\n"
+                              f"• 52周最高: {fund.get('52w_high', '--')}\n"
+                              f"• 52周最低: {fund.get('52w_low', '--')}"
+                }
+            })
+
+        # 近期价格走势
+        if "history" in analysis and analysis["history"]:
+            elements.append({"tag": "hr"})
+            history_lines = ["**📅 近期走势**"]
+            for h in analysis["history"]:
+                history_lines.append(f"• {h['date']}: {h['close']}")
+            elements.append({
+                "tag": "div",
+                "text": {
+                    "tag": "lark_md",
+                    "content": "\n".join(history_lines)
+                }
+            })
+
+    elif analysis_type == "sector":
+        # 板块分析报告
+        sector = analysis["sector"]
+        market = analysis["market"]
+        avg_change = analysis["avg_change"]
+
+        emoji = "📈" if avg_change >= 0 else "📉"
+
+        # 标题
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"**📊 板块分析报告 · {sector} ({market}) · {today}**",
+            }
+        })
+        elements.append({"tag": "hr"})
+
+        # 板块概览
+        elements.append({
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"{emoji} **板块平均涨跌**: {avg_change}%"
+            }
+        })
+
+        # 领涨股
+        if analysis.get("top_gainers"):
+            elements.append({"tag": "hr"})
+            gainers_lines = ["**🚀 领涨股**"]
+            for g in analysis["top_gainers"]:
+                gainers_lines.append(f"• {g['name']}: +{g['change_pct']}%")
+            elements.append({
+                "tag": "div",
+                "text": {
+                    "tag": "lark_md",
+                    "content": "\n".join(gainers_lines)
+                }
+            })
+
+        # 领跌股
+        if analysis.get("top_losers"):
+            elements.append({"tag": "hr"})
+            losers_lines = ["**📉 领跌股**"]
+            for l in analysis["top_losers"]:
+                losers_lines.append(f"• {l['name']}: {l['change_pct']}%")
+            elements.append({
+                "tag": "div",
+                "text": {
+                    "tag": "lark_md",
+                    "content": "\n".join(losers_lines)
+                }
+            })
+
+        # 成分股列表
+        if analysis.get("stocks"):
+            elements.append({"tag": "hr"})
+            stocks_lines = ["**📋 成分股表现**"]
+            for s in analysis["stocks"]:
+                emoji = "📈" if s["change"] >= 0 else "📉"
+                sign = "+" if s["change"] >= 0 else ""
+                stocks_lines.append(f"{emoji} {s['name']}: {s['price']} ({sign}{s['change_pct']}%)")
+            elements.append({
+                "tag": "div",
+                "text": {
+                    "tag": "lark_md",
+                    "content": "\n".join(stocks_lines)
+                }
+            })
+
+    # 底部注脚
+    elements.append({
+        "tag": "note",
+        "elements": [{
+            "tag": "plain_text",
+            "content": f"由 GitHub Actions 手动触发 · 类型: {report_type}"
+        }]
+    })
+
+    return {
+        "config": {"wide_screen_mode": True},
+        "header": {
+            "title": {"tag": "plain_text", "content": "📊 分析报告"},
+            "template": "green",
+        },
+        "elements": elements,
+    }
