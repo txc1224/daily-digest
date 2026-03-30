@@ -42,6 +42,7 @@ header {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
@@ -55,6 +56,16 @@ header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
 }
 
 .update-time { font-size: 12px; color: var(--text-secondary); }
+
+.history-select {
+    font-size: 13px;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+}
 
 main {
     max-width: 1400px;
@@ -196,6 +207,9 @@ footer {
             <h1>HotBoard</h1>
             <p class="subtitle">全网热榜实时聚合</p>
             <div class="header-actions">
+                <select id="history-select" class="history-select" onchange="onHistoryChange(this.value)">
+                    <option value="">最新</option>
+                </select>
                 <span id="update-time" class="update-time"></span>
             </div>
         </div>
@@ -213,8 +227,6 @@ footer {
     </footer>
 
 <script>
-const DATA_URL = './api/boards.json';
-
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text || '';
@@ -244,41 +256,77 @@ function renderBoard(board) {
     </div>`;
 }
 
-async function loadData() {
+function renderData(data) {
     const main = document.getElementById('main-content');
+    const timeEl = document.getElementById('update-time');
+
+    if (data.generated_at) {
+        timeEl.textContent = data.generated_at.substring(0, 19).replace('T', ' ');
+    }
+
+    const grouped = data.grouped || {};
+    let html = '';
+    for (const [groupKey, group] of Object.entries(grouped)) {
+        const boardsHtml = (group.boards || []).map(renderBoard).join('');
+        html += `<section class="group-section">
+            <h2 class="group-title">${escapeHtml(group.name)}</h2>
+            <div class="boards-grid">${boardsHtml}</div>
+        </section>`;
+    }
+
+    main.innerHTML = html || '<div class="loading-state"><h2>暂无数据</h2><p>等待 GitHub Actions 首次运行</p></div>';
+}
+
+async function loadData(url) {
+    const main = document.getElementById('main-content');
+    main.innerHTML = '<div class="loading-state"><h2>Loading...</h2></div>';
     try {
-        const res = await fetch(DATA_URL);
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-
-        // 更新时间
-        const timeEl = document.getElementById('update-time');
-        if (data.generated_at) {
-            timeEl.textContent = '数据更新于 ' + data.generated_at.substring(0, 19).replace('T', ' ');
-        }
-
-        // 渲染分组
-        const grouped = data.grouped || {};
-        let html = '';
-        for (const [groupKey, group] of Object.entries(grouped)) {
-            const boardsHtml = (group.boards || []).map(renderBoard).join('');
-            html += `<section class="group-section">
-                <h2 class="group-title">${escapeHtml(group.name)}</h2>
-                <div class="boards-grid">${boardsHtml}</div>
-            </section>`;
-        }
-
-        main.innerHTML = html || '<div class="loading-state"><h2>暂无数据</h2><p>等待 GitHub Actions 首次运行</p></div>';
+        renderData(data);
     } catch (e) {
         main.innerHTML = `<div class="error-state">
             <h2>加载失败</h2>
             <p>${escapeHtml(e.message)}</p>
-            <p style="margin-top:12px;font-size:13px">请确认 boards.json 已生成（手动触发 GitHub Actions 或本地运行 python generate.py）</p>
         </div>`;
     }
 }
 
-loadData();
+async function loadHistory() {
+    try {
+        const res = await fetch('./api/history.json');
+        if (!res.ok) return;
+        const history = await res.json();
+        const select = document.getElementById('history-select');
+
+        // 按时间倒序
+        history.sort((a, b) => b.id.localeCompare(a.id));
+
+        for (const item of history) {
+            const opt = document.createElement('option');
+            opt.value = item.file;
+            // 2026-03-30-08 → 03-30 08:00
+            const parts = item.id.split('-');
+            opt.textContent = `${parts[1]}-${parts[2]} ${parts[3]}:00 (${item.platform_count}个平台)`;
+            select.appendChild(opt);
+        }
+    } catch (e) {
+        // history.json 不存在时忽略
+    }
+}
+
+function onHistoryChange(value) {
+    if (!value) {
+        loadData('./api/boards.json');
+    } else {
+        loadData('./api/' + value);
+    }
+}
+
+// 初始化
+loadData('./api/boards.json');
+loadHistory();
 </script>
 </body>
 </html>
