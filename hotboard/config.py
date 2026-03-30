@@ -26,13 +26,19 @@ PLATFORMS = {
     "github":      ("GitHub Trending", "🐙", "tech", True),
     "v2ex":        ("V2EX",       "💬", "tech",     True),
     "reddit":      ("Reddit",     "🤖", "overseas", True),
-    # Phase 2
-    "douyin":      ("抖音热榜",    "🎵", "domestic", False),
+    # 新增平台
+    "douyin":      ("抖音热榜",    "🎵", "domestic", True),
+    "toutiao":     ("今日头条",    "📰", "domestic", True),
+    "kr36":        ("36氪热榜",    "💹", "tech",     True),
+    "weixin":      ("澎湃热榜",    "📰", "domestic", True),
+    "twitter":     ("Twitter/X",  "🐦", "overseas", True),
+    "producthunt": ("Product Hunt", "🚀", "tech",   True),
+    "sspai":       ("少数派",      "📱", "tech",     True),
+    "juejin":      ("掘金热门",    "💎", "tech",     True),
+    "pojie52":     ("吾爱破解",    "🔓", "tech",     False),  # WAF 验证码拦截
+    # 待接入
     "xiaohongshu": ("小红书热门",  "📕", "domestic", False),
-    "twitter":     ("Twitter/X",  "🐦", "overseas", False),
-    "producthunt": ("Product Hunt", "🚀", "tech",   False),
     "google_trends": ("Google Trends", "📊", "seo", False),
-    # Phase 3
     "tiktok":      ("TikTok",     "🎶", "overseas", False),
     "instagram":   ("Instagram",  "📷", "overseas", False),
     "linkedin":    ("LinkedIn",   "💼", "overseas", False),

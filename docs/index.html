@@ -16,6 +16,9 @@
     --border: #e5e5e7;
     --shadow: 0 1px 3px rgba(0,0,0,0.08);
     --radius: 12px;
+    --blue: #007aff;
+    --green: #34c759;
+    --orange: #ff9500;
 }
 
 body {
@@ -26,11 +29,12 @@ body {
     min-height: 100vh;
 }
 
+/* Header */
 header {
     background: rgba(255,255,255,0.85);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
+    padding: 12px 24px;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -45,43 +49,218 @@ header {
     flex-wrap: wrap;
 }
 
-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-.subtitle { color: var(--text-secondary); font-size: 14px; }
+header h1 { font-size: 20px; font-weight: 700; }
+.subtitle { color: var(--text-secondary); font-size: 13px; }
 
 .header-actions {
     margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.update-time { font-size: 12px; color: var(--text-secondary); }
+.search-box {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    width: 180px;
+    background: var(--card-bg);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-box:focus { border-color: var(--blue); }
+
+.filter-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--card-bg);
+    transition: all 0.2s;
+}
+
+.filter-btn:hover { border-color: var(--blue); }
+.filter-btn.active { background: var(--text); color: white; border-color: var(--text); }
+
+.history-select, .update-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
 
 .history-select {
-    font-size: 13px;
-    padding: 4px 8px;
+    padding: 4px 6px;
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--card-bg);
-    color: var(--text);
     cursor: pointer;
 }
 
+/* Main */
 main {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 24px;
+    padding: 20px 24px;
 }
 
-.group-section { margin-bottom: 32px; }
-.group-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; padding-left: 4px; }
+/* Filter panel */
+.filter-panel {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.filter-panel.show { display: block; }
+
+.filter-panel h3 { font-size: 13px; margin-bottom: 8px; color: var(--text-secondary); }
+
+.platform-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.platform-toggle {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--card-bg);
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.platform-toggle.hidden { opacity: 0.4; text-decoration: line-through; }
+
+/* Analysis section */
+.analysis-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.analysis-section h2 { font-size: 16px; margin-bottom: 12px; }
+
+.topic-cards {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.topic-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 12px 16px;
+    min-width: 260px;
+    flex-shrink: 0;
+}
+
+.topic-card .topic-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.topic-card .topic-summary { font-size: 12px; opacity: 0.9; margin-bottom: 8px; }
+
+.topic-platforms {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.topic-platform-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+}
+
+.heat-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.heat-bar-fill {
+    height: 100%;
+    background: #ffcc00;
+    border-radius: 2px;
+    transition: width 0.5s;
+}
+
+/* Rising section */
+.rising-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.rising-section h2 { font-size: 15px; margin-bottom: 10px; }
+
+.rising-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.rising-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.rising-badge {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.rising-badge.new { background: #ff3b30; color: white; }
+.rising-badge.up { background: #34c759; color: white; }
+
+/* Group */
+.group-section { margin-bottom: 24px; }
+
+.group-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-left: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.group-title::before { content: ""; margin-right: 6px; font-size: 12px; }
+.group-title.collapsed::before { content: ""; }
 
 .boards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
 }
 
+.boards-grid.collapsed { display: none; }
+
+/* Card */
 .board-card {
     background: var(--card-bg);
     border-radius: var(--radius);
@@ -91,57 +270,58 @@ main {
 }
 
 .board-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.board-card.hidden-platform { display: none; }
 
 .card-header {
     display: flex;
     align-items: center;
-    padding: 14px 16px 0;
-    gap: 8px;
+    padding: 12px 14px 0;
+    gap: 6px;
 }
 
-.card-icon { font-size: 20px; }
-.card-title { font-size: 15px; font-weight: 600; flex: 1; }
+.card-icon { font-size: 18px; }
+.card-title { font-size: 14px; font-weight: 600; flex: 1; }
 
 .card-link {
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 14px;
-    padding: 2px 6px;
+    font-size: 13px;
+    padding: 2px 4px;
     border-radius: 4px;
-    transition: background 0.2s;
 }
 
 .card-link:hover { background: var(--bg); }
-.card-meta { font-size: 11px; color: var(--text-secondary); padding: 4px 16px 8px; }
+.card-meta { font-size: 10px; color: var(--text-secondary); padding: 2px 14px 6px; }
 
 .hot-list {
     list-style: none;
-    padding: 0 12px 12px;
-    max-height: 480px;
+    padding: 0 10px 10px;
+    max-height: 440px;
     overflow-y: auto;
 }
 
-.hot-list::-webkit-scrollbar { width: 4px; }
+.hot-list::-webkit-scrollbar { width: 3px; }
 .hot-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .hot-item {
     display: flex;
     align-items: center;
-    padding: 6px 4px;
+    padding: 5px 4px;
     border-radius: 6px;
-    gap: 8px;
+    gap: 6px;
     transition: background 0.15s;
 }
 
 .hot-item:hover { background: var(--bg); }
+.hot-item.search-hidden { display: none; }
 
 .item-rank {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-secondary);
     flex-shrink: 0;
@@ -152,21 +332,31 @@ main {
 .top-2 .item-rank { background: #ff9500; color: white; }
 .top-3 .item-rank { background: #ffcc00; color: #1d1d1f; }
 
+.item-trend {
+    font-size: 10px;
+    flex-shrink: 0;
+    width: 14px;
+    text-align: center;
+}
+
+.trend-new { color: #ff3b30; font-weight: 700; }
+.trend-up { color: #34c759; }
+.trend-down { color: var(--text-secondary); }
+
 .item-title {
     flex: 1;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text);
     text-decoration: none;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    line-height: 1.4;
 }
 
 .item-title:hover { color: var(--accent); }
 
 .item-hot {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-secondary);
     flex-shrink: 0;
     white-space: nowrap;
@@ -174,26 +364,23 @@ main {
 
 footer {
     text-align: center;
-    padding: 24px;
+    padding: 20px;
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .loading-state, .error-state {
     text-align: center;
-    padding: 80px 24px;
+    padding: 60px 24px;
     color: var(--text-secondary);
-}
-
-.loading-state h2, .error-state h2 {
-    font-size: 20px;
-    color: var(--text);
-    margin-bottom: 8px;
 }
 
 @media (max-width: 768px) {
     .boards-grid { grid-template-columns: 1fr; }
-    .subtitle { display: none; }
+    .subtitle, .filter-btn { display: none; }
+    .search-box { width: 140px; }
+    .topic-cards { flex-direction: column; }
+    .topic-card { min-width: auto; }
 }
 
 @media (min-width: 1200px) {
@@ -205,8 +392,10 @@ footer {
     <header>
         <div class="header-inner">
             <h1>HotBoard</h1>
-            <p class="subtitle">全网热榜实时聚合</p>
+            <p class="subtitle">全网热榜聚合</p>
             <div class="header-actions">
+                <input type="text" id="search-input" class="search-box" placeholder="搜索热榜..." oninput="onSearch(this.value)">
+                <button class="filter-btn" onclick="toggleFilterPanel()">筛选</button>
                 <select id="history-select" class="history-select" onchange="onHistoryChange(this.value)">
                     <option value="">最新</option>
                 </select>
@@ -215,11 +404,10 @@ footer {
         </div>
     </header>
 
+    <div id="filter-panel" class="filter-panel" style="max-width:1400px;margin:12px auto 0;"></div>
+
     <main id="main-content">
-        <div class="loading-state" id="loading">
-            <h2>Loading...</h2>
-            <p>正在加载热榜数据</p>
-        </div>
+        <div class="loading-state"><h2>Loading...</h2></div>
     </main>
 
     <footer>
@@ -227,29 +415,67 @@ footer {
     </footer>
 
 <script>
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text || '';
-    return div.innerHTML;
+let currentData = null;
+let hiddenPlatforms = JSON.parse(localStorage.getItem('hb_hidden') || '[]');
+
+function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+
+function trendHtml(item) {
+    if (!item.trend || item.trend === 'same') return '';
+    if (item.trend === 'new') return '<span class="item-trend trend-new">NEW</span>';
+    if (item.trend === 'up') return `<span class="item-trend trend-up">${item.rank_change > 0 ? '↑'+item.rank_change : '↑'}</span>`;
+    if (item.trend === 'down') return `<span class="item-trend trend-down">↓</span>`;
+    return '';
+}
+
+function renderAnalysis(analysis) {
+    const topics = (analysis || {}).cross_platform_topics || [];
+    if (!topics.length) return '';
+    return `<div class="analysis-section">
+        <h2>跨平台热点分析</h2>
+        <div class="topic-cards">${topics.map(t => `
+            <div class="topic-card">
+                <div class="topic-name">${escapeHtml(t.topic)}</div>
+                <div class="topic-summary">${escapeHtml(t.summary)}</div>
+                <div class="topic-platforms">${t.platforms.map(p => `<span class="topic-platform-tag">${escapeHtml(p)}</span>`).join('')}</div>
+                <div class="heat-bar"><div class="heat-bar-fill" style="width:${t.heat_score}%"></div></div>
+            </div>`).join('')}
+        </div>
+    </div>`;
+}
+
+function renderRising(rising) {
+    if (!rising || !rising.length) return '';
+    return `<div class="rising-section">
+        <h2>飙升热点</h2>
+        <div class="rising-list">${rising.map(r => {
+            const badge = r.trend === 'new'
+                ? '<span class="rising-badge new">NEW</span>'
+                : `<span class="rising-badge up">↑${r.rank_change}</span>`;
+            return `<div class="rising-item">${badge}<span>${escapeHtml(r.title)}</span><span style="color:var(--text-secondary);font-size:10px">${escapeHtml(r.platform_name||r.platform)}</span></div>`;
+        }).join('')}</div>
+    </div>`;
 }
 
 function renderBoard(board) {
     const time = board.updated_at ? board.updated_at.substring(11, 19) : '';
+    const isHidden = hiddenPlatforms.includes(board.platform);
     const itemsHtml = (board.items || []).slice(0, 20).map(item => {
         const topClass = item.rank <= 3 ? ` top-${item.rank}` : '';
         const hotHtml = item.hot_value ? `<span class="item-hot">${escapeHtml(item.hot_value)}</span>` : '';
-        return `<li class="hot-item${topClass}">
+        return `<li class="hot-item${topClass}" data-title="${escapeHtml(item.title).toLowerCase()}">
             <span class="item-rank">${item.rank}</span>
+            ${trendHtml(item)}
             <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="item-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</a>
             ${hotHtml}
         </li>`;
     }).join('');
 
-    return `<div class="board-card" data-platform="${board.platform}">
+    return `<div class="board-card${isHidden ? ' hidden-platform' : ''}" data-platform="${board.platform}">
         <div class="card-header">
             <span class="card-icon">${board.icon}</span>
             <span class="card-title">${escapeHtml(board.platform_name)}</span>
-            <a href="${escapeHtml(board.source_url)}" target="_blank" rel="noopener" class="card-link" title="查看原站">&#x2197;</a>
+            <a href="${escapeHtml(board.source_url)}" target="_blank" rel="noopener" class="card-link">&#x2197;</a>
         </div>
         <div class="card-meta">更新于 ${time}</div>
         <ul class="hot-list">${itemsHtml}</ul>
@@ -257,6 +483,7 @@ function renderBoard(board) {
 }
 
 function renderData(data) {
+    currentData = data;
     const main = document.getElementById('main-content');
     const timeEl = document.getElementById('update-time');
 
@@ -264,17 +491,36 @@ function renderData(data) {
         timeEl.textContent = data.generated_at.substring(0, 19).replace('T', ' ');
     }
 
-    const grouped = data.grouped || {};
     let html = '';
-    for (const [groupKey, group] of Object.entries(grouped)) {
+    html += renderAnalysis(data.analysis);
+    html += renderRising(data.rising_topics);
+
+    const grouped = data.grouped || {};
+    for (const [gk, group] of Object.entries(grouped)) {
         const boardsHtml = (group.boards || []).map(renderBoard).join('');
         html += `<section class="group-section">
-            <h2 class="group-title">${escapeHtml(group.name)}</h2>
+            <h2 class="group-title" onclick="toggleGroup(this)">${escapeHtml(group.name)}</h2>
             <div class="boards-grid">${boardsHtml}</div>
         </section>`;
     }
 
-    main.innerHTML = html || '<div class="loading-state"><h2>暂无数据</h2><p>等待 GitHub Actions 首次运行</p></div>';
+    main.innerHTML = html || '<div class="loading-state"><h2>暂无数据</h2></div>';
+    renderFilterPanel(data);
+}
+
+function renderFilterPanel(data) {
+    const panel = document.getElementById('filter-panel');
+    const boards = data.boards || {};
+    const platforms = Object.entries(boards).map(([k, v]) => ({
+        id: k,
+        name: v.platform_name || k,
+        icon: v.icon || '',
+    }));
+
+    panel.innerHTML = `<h3>平台筛选（点击切换显示/隐藏）</h3>
+        <div class="platform-toggles">${platforms.map(p =>
+            `<span class="platform-toggle${hiddenPlatforms.includes(p.id) ? ' hidden' : ''}" data-platform="${p.id}" onclick="togglePlatform('${p.id}', this)">${p.icon} ${escapeHtml(p.name)}</span>`
+        ).join('')}</div>`;
 }
 
 async function loadData(url) {
@@ -283,13 +529,9 @@ async function loadData(url) {
     try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        renderData(data);
+        renderData(await res.json());
     } catch (e) {
-        main.innerHTML = `<div class="error-state">
-            <h2>加载失败</h2>
-            <p>${escapeHtml(e.message)}</p>
-        </div>`;
+        main.innerHTML = `<div class="error-state"><h2>加载失败</h2><p>${escapeHtml(e.message)}</p></div>`;
     }
 }
 
@@ -299,34 +541,54 @@ async function loadHistory() {
         if (!res.ok) return;
         const history = await res.json();
         const select = document.getElementById('history-select');
-
-        // 按时间倒序
         history.sort((a, b) => b.id.localeCompare(a.id));
-
         for (const item of history) {
             const opt = document.createElement('option');
             opt.value = item.file;
-            // 2026-03-30-08 → 03-30 08:00
-            const parts = item.id.split('-');
-            opt.textContent = `${parts[1]}-${parts[2]} ${parts[3]}:00 (${item.platform_count}个平台)`;
+            const p = item.id.split('-');
+            opt.textContent = `${p[1]}-${p[2]} ${p[3]}:00`;
             select.appendChild(opt);
         }
-    } catch (e) {
-        // history.json 不存在时忽略
-    }
+    } catch (e) {}
 }
 
-function onHistoryChange(value) {
-    if (!value) {
-        loadData('./api/boards.json');
-    } else {
-        loadData('./api/' + value);
-    }
+function onHistoryChange(v) { loadData(v ? './api/' + v : './api/boards.json'); }
+
+function onSearch(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.hot-item').forEach(el => {
+        const title = el.getAttribute('data-title') || '';
+        el.classList.toggle('search-hidden', q && !title.includes(q));
+    });
 }
 
-// 初始化
+function toggleFilterPanel() {
+    document.getElementById('filter-panel').classList.toggle('show');
+}
+
+function togglePlatform(platform, el) {
+    const idx = hiddenPlatforms.indexOf(platform);
+    if (idx >= 0) { hiddenPlatforms.splice(idx, 1); } else { hiddenPlatforms.push(platform); }
+    localStorage.setItem('hb_hidden', JSON.stringify(hiddenPlatforms));
+    el.classList.toggle('hidden');
+    document.querySelectorAll(`.board-card[data-platform="${platform}"]`).forEach(c => c.classList.toggle('hidden-platform'));
+}
+
+function toggleGroup(el) {
+    el.classList.toggle('collapsed');
+    el.nextElementSibling.classList.toggle('collapsed');
+}
+
+// Init
 loadData('./api/boards.json');
 loadHistory();
+
+// URL params
+const params = new URLSearchParams(location.search);
+if (params.get('q')) {
+    document.getElementById('search-input').value = params.get('q');
+    setTimeout(() => onSearch(params.get('q')), 500);
+}
 </script>
 </body>
 </html>
