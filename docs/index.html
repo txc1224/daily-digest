@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotBoard - 全网热榜聚合</title>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #f5f5f7;
+    --card-bg: #ffffff;
+    --text: #1d1d1f;
+    --text-secondary: #86868b;
+    --accent: #ff3b30;
+    --border: #e5e5e7;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --radius: 12px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+header {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.subtitle { color: var(--text-secondary); font-size: 14px; }
+
+.header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.update-time { font-size: 12px; color: var(--text-secondary); }
+
+main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.group-section { margin-bottom: 32px; }
+.group-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; padding-left: 4px; }
+
+.boards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.board-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.board-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+
+.card-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px 0;
+    gap: 8px;
+}
+
+.card-icon { font-size: 20px; }
+.card-title { font-size: 15px; font-weight: 600; flex: 1; }
+
+.card-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.card-link:hover { background: var(--bg); }
+.card-meta { font-size: 11px; color: var(--text-secondary); padding: 4px 16px 8px; }
+
+.hot-list {
+    list-style: none;
+    padding: 0 12px 12px;
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.hot-list::-webkit-scrollbar { width: 4px; }
+.hot-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.hot-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 4px;
+    border-radius: 6px;
+    gap: 8px;
+    transition: background 0.15s;
+}
+
+.hot-item:hover { background: var(--bg); }
+
+.item-rank {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.top-1 .item-rank { background: #ff3b30; color: white; }
+.top-2 .item-rank { background: #ff9500; color: white; }
+.top-3 .item-rank { background: #ffcc00; color: #1d1d1f; }
+
+.item-title {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.item-title:hover { color: var(--accent); }
+
+.item-hot {
+    font-size: 11px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.loading-state, .error-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--text-secondary);
+}
+
+.loading-state h2, .error-state h2 {
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+    .boards-grid { grid-template-columns: 1fr; }
+    .subtitle { display: none; }
+}
+
+@media (min-width: 1200px) {
+    .boards-grid { grid-template-columns: repeat(4, 1fr); }
+}
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <h1>HotBoard</h1>
+            <p class="subtitle">全网热榜实时聚合</p>
+            <div class="header-actions">
+                <span id="update-time" class="update-time"></span>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <div class="loading-state" id="loading">
+            <h2>Loading...</h2>
+            <p>正在加载热榜数据</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>数据由 GitHub Actions 自动更新 · <a href="https://github.com/txc1224/daily-digest" style="color:var(--text-secondary)">HotBoard</a></p>
+    </footer>
+
+<script>
+const DATA_URL = './api/boards.json';
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+
+function renderBoard(board) {
+    const time = board.updated_at ? board.updated_at.substring(11, 19) : '';
+    const itemsHtml = (board.items || []).slice(0, 20).map(item => {
+        const topClass = item.rank <= 3 ? ` top-${item.rank}` : '';
+        const hotHtml = item.hot_value ? `<span class="item-hot">${escapeHtml(item.hot_value)}</span>` : '';
+        return `<li class="hot-item${topClass}">
+            <span class="item-rank">${item.rank}</span>
+            <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="item-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</a>
+            ${hotHtml}
+        </li>`;
+    }).join('');
+
+    return `<div class="board-card" data-platform="${board.platform}">
+        <div class="card-header">
+            <span class="card-icon">${board.icon}</span>
+            <span class="card-title">${escapeHtml(board.platform_name)}</span>
+            <a href="${escapeHtml(board.source_url)}" target="_blank" rel="noopener" class="card-link" title="查看原站">&#x2197;</a>
+        </div>
+        <div class="card-meta">更新于 ${time}</div>
+        <ul class="hot-list">${itemsHtml}</ul>
+    </div>`;
+}
+
+async function loadData() {
+    const main = document.getElementById('main-content');
+    try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        // 更新时间
+        const timeEl = document.getElementById('update-time');
+        if (data.generated_at) {
+            timeEl.textContent = '数据更新于 ' + data.generated_at.substring(0, 19).replace('T', ' ');
+        }
+
+        // 渲染分组
+        const grouped = data.grouped || {};
+        let html = '';
+        for (const [groupKey, group] of Object.entries(grouped)) {
+            const boardsHtml = (group.boards || []).map(renderBoard).join('');
+            html += `<section class="group-section">
+                <h2 class="group-title">${escapeHtml(group.name)}</h2>
+                <div class="boards-grid">${boardsHtml}</div>
+            </section>`;
+        }
+
+        main.innerHTML = html || '<div class="loading-state"><h2>暂无数据</h2><p>等待 GitHub Actions 首次运行</p></div>';
+    } catch (e) {
+        main.innerHTML = `<div class="error-state">
+            <h2>加载失败</h2>
+            <p>${escapeHtml(e.message)}</p>
+            <p style="margin-top:12px;font-size:13px">请确认 boards.json 已生成（手动触发 GitHub Actions 或本地运行 python generate.py）</p>
+        </div>`;
+    }
+}
+
+loadData();
+</script>
+</body>
+</html>

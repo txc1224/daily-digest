@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotBoard - 全网热榜聚合</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <h1>HotBoard</h1>
+            <p class="subtitle">全网热榜实时聚合</p>
+            <div class="header-actions">
+                <span id="update-time" class="update-time"></span>
+                <button id="refresh-btn" class="refresh-btn" onclick="manualRefresh()">刷新</button>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content">
+        {% for group_key, group in grouped.items() %}
+        <section class="group-section">
+            <h2 class="group-title">{{ group.name }}</h2>
+            <div class="boards-grid">
+                {% for board in group.boards %}
+                <div class="board-card" data-platform="{{ board['platform'] }}">
+                    <div class="card-header">
+                        <span class="card-icon">{{ board['icon'] }}</span>
+                        <span class="card-title">{{ board['platform_name'] }}</span>
+                        <a href="{{ board['source_url'] }}" target="_blank" class="card-link" title="查看原站">&#x2197;</a>
+                    </div>
+                    <div class="card-meta">
+                        更新于 {{ board['updated_at'][11:19] if board['updated_at']|length > 19 else board['updated_at'] }}
+                    </div>
+                    <ul class="hot-list">
+                        {% for item in board['items'][:20] %}
+                        <li class="hot-item {% if item['rank'] <= 3 %}top-{{ item['rank'] }}{% endif %}">
+                            <span class="item-rank">{{ item['rank'] }}</span>
+                            <a href="{{ item['url'] }}" target="_blank" class="item-title" title="{{ item['title'] }}">{{ item['title'] }}</a>
+                            {% if item['hot_value'] %}
+                            <span class="item-hot">{{ item['hot_value'] }}</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+
+        {% if not grouped %}
+        <div class="empty-state">
+            <h2>数据加载中...</h2>
+            <p>首次启动需要几秒钟抓取数据，请稍等后刷新页面</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>数据每 5 分钟自动刷新 · HotBoard by daily-digest</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
