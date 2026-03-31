@@ -9,8 +9,11 @@
 <body>
     <header>
         <div class="header-inner">
-            <h1>HotBoard</h1>
-            <p class="subtitle">全网热榜实时聚合</p>
+            <div class="header-copy">
+                <p class="eyebrow">Signal Monitor</p>
+                <h1>HotBoard</h1>
+                <p class="subtitle">全网热榜实时聚合</p>
+            </div>
             <div class="header-actions">
                 <span id="update-time" class="update-time"></span>
                 <button id="refresh-btn" class="refresh-btn" onclick="manualRefresh()">刷新</button>
@@ -19,19 +22,195 @@
     </header>
 
     <main id="main-content">
+        <section class="hero-section">
+            <div class="hero-panel">
+                <div class="hero-copy">
+                    <span class="hero-kicker">Daily Signal Surface</span>
+                    <h2>先看哪里值得点，再看哪里出了问题。</h2>
+                    <p>聚合热榜、技术社区和平台健康状态，把高信号内容和抓取异常放在同一屏里。</p>
+                </div>
+                <div class="hero-metrics">
+                    <div class="hero-metric">
+                        <span>已接入平台</span>
+                        <strong>{{ health.enabled_count }}</strong>
+                    </div>
+                    <div class="hero-metric">
+                        <span>健康平台</span>
+                        <strong>{{ health.healthy_count }}</strong>
+                    </div>
+                    <div class="hero-metric alert">
+                        <span>异常平台</span>
+                        <strong>{{ health.failing_count }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-strip" aria-label="看板总览">
+                <div class="hero-strip-item">
+                    <span>在线卡片</span>
+                    <strong>{{ statuses|length }}</strong>
+                </div>
+                <div class="hero-strip-item">
+                    <span>需要处理</span>
+                    <strong>{{ health.failing_count }}</strong>
+                </div>
+                <div class="hero-strip-item">
+                    <span>缓存过旧</span>
+                    <strong>{{ health.stale_count }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="health-section">
+            <div class="health-header">
+                <div>
+                    <h2 class="group-title">抓取健康</h2>
+                    <span class="health-subtitle">平台抓取状态、缓存新鲜度、最近错误</span>
+                </div>
+                <button class="section-toggle" id="health-toggle" type="button" aria-expanded="false" aria-controls="health-detail-grid">
+                    展开详情
+                </button>
+            </div>
+            <div class="health-grid" id="health-grid">
+                <div class="health-card">
+                    <span class="health-label">健康平台</span>
+                    <strong class="health-value" id="healthy-count">{{ health.healthy_count }}/{{ health.enabled_count }}</strong>
+                </div>
+                <div class="health-card warning">
+                    <span class="health-label">连续失败</span>
+                    <strong class="health-value" id="failing-count">{{ health.failing_count }}</strong>
+                </div>
+                <div class="health-card muted">
+                    <span class="health-label">缓存过旧</span>
+                    <strong class="health-value" id="stale-count">{{ health.stale_count }}</strong>
+                </div>
+            </div>
+
+            {% if health.failing_platforms or health.slow_platforms %}
+            <div class="health-detail-grid" id="health-detail-grid">
+                <div class="health-panel">
+                    <div class="health-panel-title">需要关注</div>
+                    <ul class="health-list" id="failing-platforms">
+                        {% if health.failing_platforms %}
+                            {% for platform in health.failing_platforms %}
+                            <li>
+                                <strong>{{ platform.name }}</strong>
+                                <span>失败 {{ platform.consecutive_failures }} 次</span>
+                                {% if platform.last_error %}
+                                <em>{{ platform.last_error }}</em>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="health-empty">暂无异常平台</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="health-panel">
+                    <div class="health-panel-title">最近最慢</div>
+                    <ul class="health-list" id="slow-platforms">
+                        {% if health.slow_platforms %}
+                            {% for platform in health.slow_platforms %}
+                            <li>
+                                <strong>{{ platform.name }}</strong>
+                                <span>{{ platform.last_duration_ms }}ms</span>
+                                <em>{{ platform.last_item_count }} 条</em>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="health-empty">暂无抓取记录</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="filter-section" id="filter-section">
+            <div class="filter-mobile-bar">
+                <div class="filter-mobile-copy">
+                    <span class="filter-mobile-label">快速筛选</span>
+                    <strong id="filter-mobile-count">显示全部平台</strong>
+                </div>
+                <button class="filter-toggle" id="filter-toggle" type="button" aria-expanded="false" aria-controls="filter-bar">
+                    展开筛选
+                </button>
+            </div>
+            <div class="filter-bar" id="filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label">分组</span>
+                    <div class="filter-chips" id="group-filters">
+                        <button class="filter-chip active" data-filter-group="all" type="button">全部</button>
+                        {% for group_key, group in grouped.items() %}
+                        <button class="filter-chip" data-filter-group="{{ group_key }}" type="button">{{ group.name }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">状态</span>
+                    <div class="filter-chips" id="status-filters">
+                        <button class="filter-chip active" data-filter-status="all" type="button">全部</button>
+                        <button class="filter-chip" data-filter-status="healthy" type="button">正常</button>
+                        <button class="filter-chip" data-filter-status="stale" type="button">过期</button>
+                        <button class="filter-chip" data-filter-status="failing" type="button">异常</button>
+                    </div>
+                </div>
+                <label class="filter-search">
+                    <span class="filter-label">搜索</span>
+                    <input id="board-search" type="search" placeholder="搜索平台或标题">
+                </label>
+                <div class="filter-group">
+                    <span class="filter-label">排序</span>
+                    <div class="filter-chips" id="sort-filters">
+                        <button class="filter-chip active" data-filter-sort="risk" type="button">异常优先</button>
+                        <button class="filter-chip" data-filter-sort="default" type="button">默认</button>
+                        <button class="filter-chip" data-filter-sort="updated" type="button">最新优先</button>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-summary" id="filter-summary">显示全部平台</div>
+        </section>
+
         {% for group_key, group in grouped.items() %}
-        <section class="group-section">
-            <h2 class="group-title">{{ group.name }}</h2>
+        <section class="group-section" data-group-section="{{ group_key }}">
+            <div class="group-header">
+                <h2 class="group-title">{{ group.name }}</h2>
+                <span class="group-count">{{ group.boards|length }} 个来源</span>
+            </div>
             <div class="boards-grid">
                 {% for board in group.boards %}
-                <div class="board-card" data-platform="{{ board['platform'] }}">
+                {% set status = statuses.get(board['platform'], {}) %}
+                <div class="board-card" data-platform="{{ board['platform'] }}" data-group="{{ group_key }}">
                     <div class="card-header">
-                        <span class="card-icon">{{ board['icon'] }}</span>
-                        <span class="card-title">{{ board['platform_name'] }}</span>
+                        <div class="card-title-wrap">
+                            <span class="card-icon">{{ board['icon'] }}</span>
+                            <div>
+                                <span class="card-title">{{ board['platform_name'] }}</span>
+                                <div class="card-submeta">
+                                    <span class="status-pill {% if status.get('consecutive_failures', 0) > 0 %}status-failing{% elif status.get('cache_age_seconds') and status.get('cache_age_seconds') > 600 %}status-stale{% else %}status-healthy{% endif %}">
+                                        {% if status.get('consecutive_failures', 0) > 0 %}
+                                            异常
+                                        {% elif status.get('cache_age_seconds') and status.get('cache_age_seconds') > 600 %}
+                                            过期
+                                        {% else %}
+                                            正常
+                                        {% endif %}
+                                    </span>
+                                    <span class="card-meta">
+                                        更新于 {{ board['updated_at'][11:19] if board['updated_at']|length > 19 else board['updated_at'] }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                         <a href="{{ board['source_url'] }}" target="_blank" class="card-link" title="查看原站">&#x2197;</a>
                     </div>
-                    <div class="card-meta">
-                        更新于 {{ board['updated_at'][11:19] if board['updated_at']|length > 19 else board['updated_at'] }}
+                    <div class="card-toolbar">
+                        <span class="toolbar-pill">{{ board['items']|length }} 条</span>
+                        {% if status.get('last_duration_ms') %}
+                        <span class="toolbar-pill">{{ status.get('last_duration_ms') }}ms</span>
+                        {% endif %}
+                        {% if status.get('cache_age_seconds') is not none %}
+                        <span class="toolbar-pill">缓存 {{ status.get('cache_age_seconds') }}s</span>
+                        {% endif %}
                     </div>
                     <ul class="hot-list">
                         {% for item in board['items'][:20] %}
@@ -44,6 +223,9 @@
                         </li>
                         {% endfor %}
                     </ul>
+                    {% if status.get('last_error') %}
+                    <div class="card-alert">{{ status.get('last_error') }}</div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

@@ -1,15 +1,43 @@
 # Daily Digest
 
-每日信息聚合工具，包含两大功能模块：
+每日信息聚合工具，当前以 HotBoard 驱动的摘要推送和热榜看板为主，包含两大模块：
 
-1. **每日简报** — 天气、股市、新闻、GitHub Trending 等聚合推送到飞书
+1. **HotBoard Brief** — 基于全网热榜聚合结果生成飞书日摘要
 2. **HotBoard 热榜看板** — 全网热榜聚合，支持本地实时看板 + GitHub Pages 静态站
+
+旧版完整日报仍然保留为手动可用的 `full-daily` 模式，适合作为补充而不是主推送链路。
 
 ---
 
-## 每日简报
+## HotBoard Brief
 
-定时推送综合信息简报到飞书，包含：
+默认定时推送的是基于 HotBoard 的飞书日摘要，强调快速扫读而不是大而全汇总，主要包含：
+
+- 跨平台热点
+- 技术社区精选
+- 国内平台精选
+- 海外平台精选
+- 抓取异常和平台健康状态
+
+```bash
+# HotBoard 日摘要
+python main.py --mode hotboard-brief
+
+# 完整简报
+python main.py --mode full-daily
+
+# GitHub Actions 手动触发
+# daily.yml 可选 hotboard-brief 或 full-daily
+# hotboard-brief 是默认定时模式
+# full-daily 会执行旧版完整日报
+# 兼容旧命令：
+# python main.py --mode daily
+# python main.py --mode hotboard-daily
+```
+
+## Full Daily
+
+旧版完整日报仍可手动执行，包含：
 
 - 天气预报
 - 股市行情（A股/港股/美股）、大宗商品、汇率、国债/VIX
@@ -18,8 +46,12 @@
 - 热点聚类、情感分析
 
 ```bash
-# 完整简报
-python main.py --mode daily
+python main.py --mode full-daily
+```
+
+## 其他模式
+
+```bash
 
 # 股市简报
 python main.py --mode stock-morning    # A股开盘
@@ -77,6 +109,14 @@ python generate.py
 
 GitHub Actions 运行在国际节点，无需代理即可访问所有平台。
 
+## GitHub Actions
+
+- `Daily Brief`：每天 08:00 发送 `hotboard-brief`，手动触发时可切换为 `full-daily`
+- `Update HotBoard`：每天 3 次更新 `docs/api/boards.json` 和历史快照
+- `Tests`：在 `push` / `pull_request` 时运行 `pytest tests`
+- `Stock Market - A股开盘 / 港股收盘 / 美股收盘`：已暂停自动调度，仅保留手动触发
+- `股票/板块分析报告`：手动分析指定股票或板块
+
 ---
 
 ## 环境配置
@@ -87,23 +127,35 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
+# 安装开发/测试依赖
+pip install -r requirements-dev.txt
+
 # 复制环境变量
 cp .env.example .env
 # 编辑 .env 填入 FEISHU_WEBHOOK 等配置
+```
+
+## 测试
+
+```bash
+source .venv/bin/activate
+pytest tests
 ```
 
 ## 项目结构
 
 ```
 daily-digest/
-├── main.py              # 每日简报入口
-├── generate.py          # 热榜静态数据生成
+├── main.py              # CLI 入口（hotboard-brief / full-daily / stock-*）
+├── generate.py          # HotBoard 静态数据生成
+├── daily_digest_pipeline.py  # 旧版完整日报 pipeline
 ├── sender.py            # 飞书推送
-├── formatter.py         # 飞书卡片构建
-├── fetchers/            # 每日简报数据源
+├── formatter.py         # 完整日报/股市卡片构建
+├── fetchers/            # 数据源抓取
 ├── ai/                  # AI 增强（摘要/翻译/聚类/情感）
 ├── hotboard/            # 热榜看板模块
 │   ├── app.py           # FastAPI 本地看板
+│   ├── status.py        # 平台抓取状态记录
 │   ├── sources/         # 各平台 fetcher
 │   ├── static/          # 前端资源
 │   └── templates/       # Jinja2 模板

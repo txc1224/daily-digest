@@ -1,8 +1,10 @@
 import os
 import sys
 import asyncio
+import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -16,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from hotboard.config import PLATFORMS, GROUP_NAMES, GROUP_ORDER
 from hotboard.sources import ALL_FETCHERS
 from hotboard.cache import get_cache, set_cache, clear_cache
+from hotboard.status import get_platform_status, record_fetch_result
 
 
 _executor = ThreadPoolExecutor(max_workers=8)
@@ -32,13 +35,28 @@ def _fetch_one(platform: str) -> dict | None:
     if not fetcher_cls:
         return None
 
+    started_at = time.perf_counter()
     try:
         fetcher = fetcher_cls()
         board = fetcher.get_board()
         board_dict = board.to_dict()
         set_cache(platform, board_dict)
+        duration_ms = int((time.perf_counter() - started_at) * 1000)
+        record_fetch_result(
+            platform,
+            success=True,
+            duration_ms=duration_ms,
+            item_count=len(board_dict.get("items", [])),
+        )
         return board_dict
     except Exception as e:
+        duration_ms = int((time.perf_counter() - started_at) * 1000)
+        record_fetch_result(
+            platform,
+            success=False,
+            duration_ms=duration_ms,
+            error=str(e),
+        )
         print(f"[{platform}] fetch error: {e}", file=sys.stderr)
         return None
 
@@ -74,6 +92,77 @@ def get_cached_boards() -> dict:
     return results
 
 
+def get_status_snapshot() -> dict:
+    statuses = {}
+    for platform, conf in PLATFORMS.items():
+        cached = get_cache(platform)
+        fetch_status = get_platform_status(platform)
+        cache_updated_at = ""
+        cache_age_seconds = None
+        if cached:
+            cached_at = cached.get("_cached_at")
+            if cached_at:
+                cache_updated_at = datetime.fromtimestamp(cached_at).isoformat(timespec="seconds")
+                cache_age_seconds = max(0, int(time.time() - cached_at))
+        statuses[platform] = {
+            "name": conf[0],
+            "enabled": conf[3],
+            "has_fetcher": platform in ALL_FETCHERS,
+            "cached": cached is not None,
+            "updated_at": cached.get("updated_at", "") if cached else "",
+            "cache_updated_at": cache_updated_at,
+            "cache_age_seconds": cache_age_seconds,
+            **fetch_status,
+        }
+    return statuses
+
+
+def build_health_overview(statuses: dict) -> dict:
+    enabled_statuses = [status for status in statuses.values() if status["enabled"] and status["has_fetcher"]]
+    healthy_count = sum(
+        1
+        for status in enabled_statuses
+        if status["cached"] and status["consecutive_failures"] == 0 and not status["last_error"]
+    )
+    failing_platforms = [
+        {"platform": platform, **status}
+        for platform, status in statuses.items()
+        if status["enabled"] and status["has_fetcher"] and (status["consecutive_failures"] > 0 or status["last_error"])
+    ]
+    stale_platforms = [
+        {"platform": platform, **status}
+        for platform, status in statuses.items()
+        if status["enabled"]
+        and status["has_fetcher"]
+        and status["cache_age_seconds"] is not None
+        and status["cache_age_seconds"] > 600
+    ]
+    slow_platforms = sorted(
+        (
+            {"platform": platform, **status}
+            for platform, status in statuses.items()
+            if status["enabled"] and status["has_fetcher"] and status["last_duration_ms"] is not None
+        ),
+        key=lambda status: status["last_duration_ms"],
+        reverse=True,
+    )[:3]
+    failing_platforms.sort(
+        key=lambda status: (
+            -status["consecutive_failures"],
+            -(status["cache_age_seconds"] or 0),
+            status["name"],
+        )
+    )
+    return {
+        "enabled_count": len(enabled_statuses),
+        "healthy_count": healthy_count,
+        "failing_count": len(failing_platforms),
+        "stale_count": len(stale_platforms),
+        "failing_platforms": failing_platforms[:5],
+        "slow_platforms": slow_platforms,
+    }
+
+
 # ---- FastAPI App ----
 
 @asynccontextmanager
@@ -103,6 +192,8 @@ templates = Jinja2Templates(directory=os.path.join(_dir, "templates"))
 @app.get("/")
 async def index(request: Request):
     boards = get_cached_boards()
+    statuses = get_status_snapshot()
+    health = build_health_overview(statuses)
 
     grouped = {}
     for group_key in GROUP_ORDER:
@@ -118,6 +209,8 @@ async def index(request: Request):
 
     return templates.TemplateResponse(request, "index.html", {
         "grouped": grouped,
+        "health": health,
+        "statuses": statuses,
     })
 
 
@@ -145,17 +238,11 @@ async def api_refresh():
 
 @app.get("/api/status")
 async def api_status():
-    statuses = {}
-    for platform, conf in PLATFORMS.items():
-        cached = get_cache(platform)
-        statuses[platform] = {
-            "name": conf[0],
-            "enabled": conf[3],
-            "has_fetcher": platform in ALL_FETCHERS,
-            "cached": cached is not None,
-            "updated_at": cached.get("updated_at", "") if cached else "",
-        }
-    return JSONResponse(statuses)
+    statuses = get_status_snapshot()
+    return JSONResponse({
+        "platforms": statuses,
+        "health": build_health_overview(statuses),
+    })
 
 
 if __name__ == "__main__":

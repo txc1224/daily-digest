@@ -19,6 +19,7 @@
     --blue: #007aff;
     --green: #34c759;
     --orange: #ff9500;
+    --red: #ff3b30;
 }
 
 body {
@@ -237,6 +238,195 @@ main {
 .rising-badge.new { background: #ff3b30; color: white; }
 .rising-badge.up { background: #34c759; color: white; }
 
+.status-section,
+.trend-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.section-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.health-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.health-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8f8fa 100%);
+}
+
+.health-card.warning {
+    background: linear-gradient(180deg, #fff8f7 0%, #fff2ef 100%);
+    border-color: #ffd8d3;
+}
+
+.health-label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.health-value {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.health-history {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.health-history-item {
+    min-width: 92px;
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--bg);
+    flex-shrink: 0;
+}
+
+.history-time {
+    display: block;
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.history-health {
+    display: flex;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.history-health strong { color: var(--green); }
+.history-health em { color: var(--red); font-style: normal; }
+
+.platform-trend-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.platform-trend-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7f7f9 100%);
+}
+
+.platform-trend-card.state-failing {
+    border-color: #ffd8d3;
+    background: linear-gradient(180deg, #fff8f7 0%, #fff2ef 100%);
+}
+
+.platform-trend-card.state-stale {
+    border-color: #ffe3bf;
+    background: linear-gradient(180deg, #fffaf3 0%, #fff4e6 100%);
+}
+
+.platform-trend-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.platform-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.status-healthy {
+    background: rgba(52, 199, 89, 0.12);
+    color: #1d7a3b;
+}
+
+.status-stale {
+    background: rgba(255, 149, 0, 0.14);
+    color: #9a5c00;
+}
+
+.status-failing {
+    background: rgba(255, 59, 48, 0.12);
+    color: #b3221a;
+}
+
+.platform-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.metric-pill {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--bg);
+    border-radius: 999px;
+    padding: 4px 8px;
+}
+
+.sparkline {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.spark {
+    height: 8px;
+    flex: 1;
+    border-radius: 999px;
+    background: #d7d7dc;
+}
+
+.spark.healthy { background: var(--green); }
+.spark.stale { background: var(--orange); }
+.spark.failing { background: var(--red); }
+
+.platform-error {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+}
+
 /* Group */
 .group-section { margin-bottom: 24px; }
 
@@ -291,7 +481,40 @@ main {
 }
 
 .card-link:hover { background: var(--bg); }
-.card-meta { font-size: 10px; color: var(--text-secondary); padding: 2px 14px 6px; }
+.card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 10px;
+    color: var(--text-secondary);
+    padding: 2px 14px 6px;
+}
+
+.card-toolbar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 0 14px 8px;
+}
+
+.toolbar-pill {
+    font-size: 10px;
+    color: var(--text-secondary);
+    background: var(--bg);
+    border-radius: 999px;
+    padding: 3px 7px;
+}
+
+.card-alert {
+    margin: 0 10px 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #fff4f2;
+    color: #b3221a;
+    font-size: 11px;
+    line-height: 1.45;
+}
 
 .hot-list {
     list-style: none;
@@ -381,6 +604,8 @@ footer {
     .search-box { width: 140px; }
     .topic-cards { flex-direction: column; }
     .topic-card { min-width: auto; }
+    .health-grid,
+    .platform-trend-list { grid-template-columns: 1fr; }
 }
 
 @media (min-width: 1200px) {
@@ -428,6 +653,72 @@ function trendHtml(item) {
     return '';
 }
 
+function stateLabel(state) {
+    if (state === 'failing') return '异常';
+    if (state === 'stale') return '过期';
+    return '正常';
+}
+
+function renderHealth(health, trendHistory) {
+    if (!health) return '';
+    const history = (trendHistory || {}).health_history || [];
+    return `<section class="status-section">
+        <div class="section-header">
+            <div>
+                <div class="section-title">抓取健康</div>
+                <div class="section-subtitle">GitHub Pages 静态站同步展示平台状态、错误和最近几个快照的健康变化</div>
+            </div>
+        </div>
+        <div class="health-grid">
+            <div class="health-card">
+                <span class="health-label">健康平台</span>
+                <strong class="health-value">${health.healthy_count || 0}/${health.enabled_count || 0}</strong>
+            </div>
+            <div class="health-card warning">
+                <span class="health-label">异常平台</span>
+                <strong class="health-value">${health.failing_count || 0}</strong>
+            </div>
+            <div class="health-card">
+                <span class="health-label">缓存过旧</span>
+                <strong class="health-value">${health.stale_count || 0}</strong>
+            </div>
+        </div>
+        ${history.length ? `<div class="health-history">${history.map(item => `
+            <div class="health-history-item">
+                <span class="history-time">${escapeHtml((item.id || '').slice(5).replace(/-/g, '/'))}</span>
+                <div class="history-health"><strong>${item.healthy_count || 0}</strong><em>${item.failing_count || 0}</em></div>
+            </div>`).join('')}</div>` : ''}
+    </section>`;
+}
+
+function renderPlatformTrends(trendHistory) {
+    const trends = (trendHistory || {}).platform_trends || [];
+    if (!trends.length) return '';
+    return `<section class="trend-section">
+        <div class="section-header">
+            <div>
+                <div class="section-title">平台趋势</div>
+                <div class="section-subtitle">最近几次快照的可用率、响应耗时和当前错误</div>
+            </div>
+        </div>
+        <div class="platform-trend-list">${trends.map(item => `
+            <article class="platform-trend-card state-${escapeHtml(item.state || 'healthy')}">
+                <div class="platform-trend-head">
+                    <div class="platform-name">${escapeHtml(item.name || item.platform)}</div>
+                    <span class="status-pill status-${escapeHtml(item.state || 'healthy')}">${stateLabel(item.state)}</span>
+                </div>
+                <div class="platform-metrics">
+                    <span class="metric-pill">可用率 ${Math.round((item.availability_rate || 0) * 100)}%</span>
+                    ${item.current_duration_ms != null ? `<span class="metric-pill">当前 ${item.current_duration_ms}ms</span>` : ''}
+                    ${item.avg_duration_ms != null ? `<span class="metric-pill">均值 ${item.avg_duration_ms}ms</span>` : ''}
+                </div>
+                <div class="sparkline">${(item.sparkline || []).map(state => `<span class="spark ${escapeHtml(state)}"></span>`).join('')}</div>
+                <div class="platform-error">${escapeHtml(item.last_error || '最近无错误')}</div>
+            </article>`).join('')}
+        </div>
+    </section>`;
+}
+
 function renderAnalysis(analysis) {
     const topics = (analysis || {}).cross_platform_topics || [];
     if (!topics.length) return '';
@@ -458,6 +749,7 @@ function renderRising(rising) {
 }
 
 function renderBoard(board) {
+    const status = (((currentData || {}).statuses || {})[board.platform]) || {};
     const time = board.updated_at ? board.updated_at.substring(11, 19) : '';
     const isHidden = hiddenPlatforms.includes(board.platform);
     const itemsHtml = (board.items || []).slice(0, 20).map(item => {
@@ -470,6 +762,12 @@ function renderBoard(board) {
             ${hotHtml}
         </li>`;
     }).join('');
+    const state = status.state || 'healthy';
+    const toolbar = [
+        `<span class="toolbar-pill">${(board.items || []).length} 条</span>`,
+        status.last_duration_ms != null ? `<span class="toolbar-pill">${status.last_duration_ms}ms</span>` : '',
+        status.last_item_count ? `<span class="toolbar-pill">${status.last_item_count} 条抓取</span>` : '',
+    ].filter(Boolean).join('');
 
     return `<div class="board-card${isHidden ? ' hidden-platform' : ''}" data-platform="${board.platform}">
         <div class="card-header">
@@ -477,8 +775,10 @@ function renderBoard(board) {
             <span class="card-title">${escapeHtml(board.platform_name)}</span>
             <a href="${escapeHtml(board.source_url)}" target="_blank" rel="noopener" class="card-link">&#x2197;</a>
         </div>
-        <div class="card-meta">更新于 ${time}</div>
+        <div class="card-meta"><span class="status-pill status-${escapeHtml(state)}">${stateLabel(state)}</span><span>更新于 ${time}</span></div>
+        <div class="card-toolbar">${toolbar}</div>
         <ul class="hot-list">${itemsHtml}</ul>
+        ${status.last_error ? `<div class="card-alert">${escapeHtml(status.last_error)}</div>` : ''}
     </div>`;
 }
 
@@ -492,6 +792,8 @@ function renderData(data) {
     }
 
     let html = '';
+    html += renderHealth(data.health, data.trend_history);
+    html += renderPlatformTrends(data.trend_history);
     html += renderAnalysis(data.analysis);
     html += renderRising(data.rising_topics);
 
@@ -529,7 +831,19 @@ async function loadData(url) {
     try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        renderData(await res.json());
+        const payload = await res.json();
+        if ((!payload.statuses || !payload.health) && url.endsWith('/boards.json')) {
+            try {
+                const statusRes = await fetch('./api/status.json');
+                if (statusRes.ok) {
+                    const statusPayload = await statusRes.json();
+                    payload.statuses = payload.statuses || statusPayload.statuses;
+                    payload.health = payload.health || statusPayload.health;
+                    payload.trend_history = payload.trend_history || statusPayload.trend_history;
+                }
+            } catch (e) {}
+        }
+        renderData(payload);
     } catch (e) {
         main.innerHTML = `<div class="error-state"><h2>加载失败</h2><p>${escapeHtml(e.message)}</p></div>`;
     }
@@ -546,7 +860,8 @@ async function loadHistory() {
             const opt = document.createElement('option');
             opt.value = item.file;
             const p = item.id.split('-');
-            opt.textContent = `${p[1]}-${p[2]} ${p[3]}:00`;
+            const summary = item.failing_count ? ` · 异常 ${item.failing_count}` : '';
+            opt.textContent = `${p[1]}-${p[2]} ${p[3]}:00${summary}`;
             select.appendChild(opt);
         }
     } catch (e) {}

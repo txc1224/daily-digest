@@ -1,9 +1,18 @@
-name: Daily Digest
+name: Daily Brief
 
 on:
   schedule:
     - cron: '0 0 * * *'   # UTC 00:00 = 北京时间 08:00
   workflow_dispatch:        # 支持手动触发，方便测试
+    inputs:
+      mode:
+        description: '选择手动推送模式'
+        required: true
+        default: 'hotboard-brief'
+        type: choice
+        options:
+          - hotboard-brief
+          - full-daily
 
 jobs:
   send:
@@ -24,10 +33,25 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run daily digest
-        run: python main.py
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ github.event.inputs.mode }}"
+          else
+            MODE="hotboard-brief"
+          fi
+
+          echo "Selected mode: $MODE"
+
+          if [ "$MODE" = "full-daily" ]; then
+            echo "Running full daily digest..."
+            python main.py --mode full-daily
+          else
+            echo "Running HotBoard daily brief..."
+            python main.py --mode hotboard-brief
+          fi
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
-          WEATHER_CITY: ${{ secrets.WEATHER_CITY }}              # 城市英文名，如 Beijing / Shanghai
+          WEATHER_CITY: ${{ secrets.WEATHER_CITY }}
           # 可选：AI 摘要功能（无 API Key 时会使用本地规则生成摘要）
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           # 可选：Product Hunt API Token（无 Token 时会使用 RSS 备用方案）

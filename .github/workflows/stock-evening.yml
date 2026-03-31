@@ -1,9 +1,6 @@
 name: Stock Market - 美股收盘
 
 on:
-  schedule:
-    # 北京时间 次日 04:00 = UTC 20:00 (前一天)
-    - cron: '0 20 * * 1-5'
   workflow_dispatch:
 
 jobs:

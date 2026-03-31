@@ -27,10 +27,12 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: pip install -r requirements.txt
 
       - name: Generate hotboard data
         run: python generate.py
+        env:
+          PRODUCT_HUNT_TOKEN: ${{ secrets.PRODUCT_HUNT_TOKEN }}
 
       - name: Commit and push
         run: |

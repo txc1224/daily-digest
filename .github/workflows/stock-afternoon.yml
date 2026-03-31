@@ -1,9 +1,6 @@
 name: Stock Market - 港股收盘
 
 on:
-  schedule:
-    # 北京时间 16:00 = UTC 08:00
-    - cron: '0 8 * * 1-5'
   workflow_dispatch:
 
 jobs:

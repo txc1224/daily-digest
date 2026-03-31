@@ -1,7 +1,6 @@
 import os
 import requests
-from typing import List, Optional
-from datetime import datetime
+from typing import List
 
 
 # Product Hunt 常见词汇翻译
@@ -79,7 +78,7 @@ def translate_ph_tagline(tagline: str) -> str:
 
 def has_ph_token() -> bool:
     """检查是否有 Product Hunt Token"""
-    return bool(os.environ.get("PRODUCT_HUNT_TOKEN", ""))
+    return bool(os.environ.get("PRODUCT_HUNT_TOKEN", "").strip())
 
 
 def fetch_product_hunt_trending(limit: int = 10) -> List[dict]:
@@ -97,7 +96,7 @@ def fetch_product_hunt_trending(limit: int = 10) -> List[dict]:
     try:
         # Product Hunt GraphQL API
         url = "https://api.producthunt.com/v2/api/graphql"
-        token = os.environ.get("PRODUCT_HUNT_TOKEN", "")
+        token = os.environ.get("PRODUCT_HUNT_TOKEN", "").strip()
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -141,7 +140,15 @@ def fetch_product_hunt_trending(limit: int = 10) -> List[dict]:
         r.raise_for_status()
         data = r.json()
 
+        errors = data.get("errors", [])
+        if errors:
+            raise RuntimeError(f"GraphQL errors: {errors}")
+
         posts = data.get("data", {}).get("posts", {}).get("edges", [])
+        if not posts:
+            print("  ⚠️  Product Hunt API 返回 0 条结果，切换到 RSS 备用方案")
+            return fetch_product_hunt_fallback(limit)
+
         results = []
 
         for edge in posts:
@@ -160,10 +167,11 @@ def fetch_product_hunt_trending(limit: int = 10) -> List[dict]:
                 "topics": topics[:3],
             })
 
+        print(f"  ✅ Product Hunt API 返回 {len(results)} 条")
         return results
 
     except Exception as e:
-        print(f"Product Hunt API 失败，使用 RSS 备用方案: {e}")
+        print(f"  ⚠️  Product Hunt API 失败，使用 RSS 备用方案: {e}")
         return fetch_product_hunt_fallback(limit)
 
 
@@ -172,17 +180,24 @@ def fetch_product_hunt_fallback(limit: int = 10) -> List[dict]:
     Product Hunt 的备用方案 - 获取 featured 产品列表
     通过 RSS 或公开 API 获取
     """
+    url = "https://www.producthunt.com/feed"
+
     try:
         # 使用 RSS 作为备用
         import feedparser
 
-        # Product Hunt 有 RSS feed，虽然不是实时的但可用
-        url = "https://www.producthunt.com/feed"
-
         d = feedparser.parse(url)
+        if getattr(d, "bozo", 0):
+            print(f"  ⚠️  Product Hunt RSS 解析异常: {getattr(d, 'bozo_exception', 'unknown error')}")
+
+        entries = list(getattr(d, "entries", []))
+        if not entries:
+            print(f"  ⚠️  Product Hunt RSS 返回 0 条结果: {url}")
+            return []
+
         results = []
 
-        for entry in d.entries[:limit]:
+        for entry in entries[:limit]:
             raw_desc = entry.get("description", "")
             results.append({
                 "name": entry.get("title", ""),
@@ -192,10 +207,11 @@ def fetch_product_hunt_fallback(limit: int = 10) -> List[dict]:
                 "topics": [],
             })
 
+        print(f"  ✅ Product Hunt RSS 返回 {len(results)} 条")
         return results
 
     except Exception as e:
-        print(f"Product Hunt fallback fetch failed: {e}")
+        print(f"  ⚠️  Product Hunt RSS fallback 失败: {e}")
         return []
 
 
