@@ -14,7 +14,7 @@ class HackerNewsFetcher(BaseFetcher):
         url = "https://hacker-news.firebaseio.com/v0/topstories.json"
         r = self.http_get(url)
         r.raise_for_status()
-        story_ids = r.json()[:20]
+        story_ids = r.json()[:30]
 
         # 并发获取详情（共享 proxies 配置）
         proxies = self.proxies

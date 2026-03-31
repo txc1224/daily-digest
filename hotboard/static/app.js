@@ -6,6 +6,7 @@ const filterState = {
     query: '',
     sort: 'risk',
 };
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function setToggleExpanded(button, expanded, expandedLabel, collapsedLabel) {
     if (!button) return;
@@ -19,6 +20,66 @@ function updateTime() {
         const now = new Date();
         el.textContent = '最后刷新: ' + now.toLocaleTimeString('zh-CN', { hour12: false });
     }
+}
+
+function renderHotList(items = []) {
+    return items.map(item => {
+        const topClass = item.rank <= 3 ? ` top-${item.rank}` : '';
+        const hotHtml = item.hot_value ? `<span class="item-hot">${escapeHtml(item.hot_value)}</span>` : '';
+        return `<li class="hot-item${topClass}">
+            <span class="item-rank">${item.rank}</span>
+            <a href="${escapeHtml(item.url)}" target="_blank" class="item-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</a>
+            ${hotHtml}
+        </li>`;
+    }).join('');
+}
+
+function renderCardCover(board) {
+    const featured = board?.items?.[0];
+    if (!featured) return '';
+    if (board.platform === 'github') {
+        const rail = (board.items || []).slice(1, 4).map(item => `
+            <a href="${escapeHtml(item.url)}" target="_blank" class="cover-rail-item" title="${escapeHtml(item.title)}">
+                <span class="cover-rail-rank">#${item.rank}</span>
+                <span class="cover-rail-title">${escapeHtml(item.title)}</span>
+            </a>
+        `).join('');
+        const summary = featured.category ? `<p class="cover-summary">${escapeHtml(featured.category)}</p>` : '';
+        const hotPill = featured.hot_value ? `<span class="cover-pill">${escapeHtml(featured.hot_value)}</span>` : '';
+        return `<div class="card-cover card-cover-github">
+            <div class="cover-kicker">Featured Signal</div>
+            <div class="cover-github-grid">
+                <div class="cover-github-main">
+                    <a href="${escapeHtml(featured.url)}" target="_blank" class="cover-title" title="${escapeHtml(featured.title)}">${escapeHtml(featured.title)}</a>
+                    <div class="cover-meta-row">
+                        ${hotPill}
+                        <span class="cover-pill">TOP ${featured.rank}</span>
+                        <span class="cover-pill">Repo Cover</span>
+                    </div>
+                    ${summary}
+                </div>
+                <div class="cover-rail">${rail}</div>
+            </div>
+        </div>`;
+    }
+    const summary = featured.category ? `<p class="cover-summary">${escapeHtml(featured.category)}</p>` : '';
+    const hotPill = featured.hot_value ? `<span class="cover-pill">${escapeHtml(featured.hot_value)}</span>` : '';
+    return `<div class="card-cover">
+        <div class="cover-kicker">Featured Signal</div>
+        <a href="${escapeHtml(featured.url)}" target="_blank" class="cover-title" title="${escapeHtml(featured.title)}">${escapeHtml(featured.title)}</a>
+        <div class="cover-meta-row">
+            ${hotPill}
+            <span class="cover-pill">TOP ${featured.rank}</span>
+            <span class="cover-pill">${escapeHtml(board.platform_name || '')}</span>
+        </div>
+        ${summary}
+    </div>`;
+}
+
+function getBoardState(platformStatus) {
+    if (platformStatus?.consecutive_failures > 0) return 'failing';
+    if ((platformStatus?.cache_age_seconds ?? 0) > 600) return 'stale';
+    return 'healthy';
 }
 
 async function manualRefresh() {
@@ -68,10 +129,13 @@ async function autoRefresh() {
             const statusPill = card.querySelector('.status-pill');
             if (statusPill && platformStatus) {
                 statusPill.className = 'status-pill';
-                if (platformStatus.consecutive_failures > 0) {
+                const boardState = getBoardState(platformStatus);
+                card.dataset.state = boardState;
+
+                if (boardState === 'failing') {
                     statusPill.classList.add('status-failing');
                     statusPill.textContent = '异常';
-                } else if ((platformStatus.cache_age_seconds ?? 0) > 600) {
+                } else if (boardState === 'stale') {
                     statusPill.classList.add('status-stale');
                     statusPill.textContent = '过期';
                 } else {
@@ -94,6 +158,11 @@ async function autoRefresh() {
                 toolbar.innerHTML = pills.join('');
             }
 
+            const cover = card.querySelector('.card-cover');
+            if (cover && board.items?.length) {
+                cover.outerHTML = renderCardCover(board);
+            }
+
             const alertBox = card.querySelector('.card-alert');
             if (platformStatus?.last_error) {
                 if (alertBox) {
@@ -111,16 +180,7 @@ async function autoRefresh() {
             // 更新列表
             const list = card.querySelector('.hot-list');
             if (!list || !board.items) continue;
-
-            list.innerHTML = board.items.slice(0, 20).map(item => {
-                const topClass = item.rank <= 3 ? ` top-${item.rank}` : '';
-                const hotHtml = item.hot_value ? `<span class="item-hot">${escapeHtml(item.hot_value)}</span>` : '';
-                return `<li class="hot-item${topClass}">
-                    <span class="item-rank">${item.rank}</span>
-                    <a href="${escapeHtml(item.url)}" target="_blank" class="item-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</a>
-                    ${hotHtml}
-                </li>`;
-            }).join('');
+            list.innerHTML = renderHotList(board.items);
         }
 
         renderHealth(statusPayload.health);
@@ -319,8 +379,43 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function initBoardCardEffects() {
+    const cards = Array.from(document.querySelectorAll('.board-card'));
+    const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    cards.forEach((card, index) => {
+        card.style.setProperty('--card-index', String(index));
+        if (!canHover || prefersReducedMotion.matches) return;
+
+        const handlePointerMove = (event) => {
+            const rect = card.getBoundingClientRect();
+            const px = (event.clientX - rect.left) / rect.width;
+            const py = (event.clientY - rect.top) / rect.height;
+            const tiltY = (px - 0.5) * 7;
+            const tiltX = (0.5 - py) * 6;
+
+            card.style.setProperty('--pointer-x', `${(px * 100).toFixed(2)}%`);
+            card.style.setProperty('--pointer-y', `${(py * 100).toFixed(2)}%`);
+            card.style.setProperty('--tilt-x', `${tiltX.toFixed(2)}deg`);
+            card.style.setProperty('--tilt-y', `${tiltY.toFixed(2)}deg`);
+        };
+
+        const resetPointer = () => {
+            card.style.removeProperty('--tilt-x');
+            card.style.removeProperty('--tilt-y');
+            card.style.removeProperty('--pointer-x');
+            card.style.removeProperty('--pointer-y');
+        };
+
+        card.addEventListener('pointermove', handlePointerMove);
+        card.addEventListener('pointerleave', resetPointer);
+        card.addEventListener('blur', resetPointer, true);
+    });
+}
+
 // 初始化
 updateTime();
 initResponsivePanels();
 initFilters();
+initBoardCardEffects();
 setInterval(autoRefresh, REFRESH_INTERVAL);

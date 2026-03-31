@@ -179,7 +179,7 @@
             <div class="boards-grid">
                 {% for board in group.boards %}
                 {% set status = statuses.get(board['platform'], {}) %}
-                <div class="board-card" data-platform="{{ board['platform'] }}" data-group="{{ group_key }}">
+                <div class="board-card" data-platform="{{ board['platform'] }}" data-group="{{ group_key }}" data-state="{% if status.get('consecutive_failures', 0) > 0 %}failing{% elif status.get('cache_age_seconds') and status.get('cache_age_seconds') > 600 %}stale{% else %}healthy{% endif %}" style="--card-index: {{ loop.index0 }};">
                     <div class="card-header">
                         <div class="card-title-wrap">
                             <span class="card-icon">{{ board['icon'] }}</span>
@@ -212,8 +212,51 @@
                         <span class="toolbar-pill">缓存 {{ status.get('cache_age_seconds') }}s</span>
                         {% endif %}
                     </div>
+                    {% if board['items'] %}
+                    {% set featured = board['items'][0] %}
+                    <div class="card-cover {% if board['platform'] == 'github' %}card-cover-github{% endif %}">
+                        <div class="cover-kicker">Featured Signal</div>
+                        {% if board['platform'] == 'github' %}
+                        <div class="cover-github-grid">
+                            <div class="cover-github-main">
+                                <a href="{{ featured['url'] }}" target="_blank" class="cover-title" title="{{ featured['title'] }}">{{ featured['title'] }}</a>
+                                <div class="cover-meta-row">
+                                    {% if featured['hot_value'] %}
+                                    <span class="cover-pill">{{ featured['hot_value'] }}</span>
+                                    {% endif %}
+                                    <span class="cover-pill">TOP {{ featured['rank'] }}</span>
+                                    <span class="cover-pill">Repo Cover</span>
+                                </div>
+                                {% if featured.get('category') %}
+                                <p class="cover-summary">{{ featured.get('category') }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="cover-rail">
+                                {% for rail_item in board['items'][1:4] %}
+                                <a href="{{ rail_item['url'] }}" target="_blank" class="cover-rail-item" title="{{ rail_item['title'] }}">
+                                    <span class="cover-rail-rank">#{{ rail_item['rank'] }}</span>
+                                    <span class="cover-rail-title">{{ rail_item['title'] }}</span>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <a href="{{ featured['url'] }}" target="_blank" class="cover-title" title="{{ featured['title'] }}">{{ featured['title'] }}</a>
+                        <div class="cover-meta-row">
+                            {% if featured['hot_value'] %}
+                            <span class="cover-pill">{{ featured['hot_value'] }}</span>
+                            {% endif %}
+                            <span class="cover-pill">TOP {{ featured['rank'] }}</span>
+                            <span class="cover-pill">{{ board['platform_name'] }}</span>
+                        </div>
+                        {% if featured.get('category') %}
+                        <p class="cover-summary">{{ featured.get('category') }}</p>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
                     <ul class="hot-list">
-                        {% for item in board['items'][:20] %}
+                        {% for item in board['items'] %}
                         <li class="hot-item {% if item['rank'] <= 3 %}top-{{ item['rank'] }}{% endif %}">
                             <span class="item-rank">{{ item['rank'] }}</span>
                             <a href="{{ item['url'] }}" target="_blank" class="item-title" title="{{ item['title'] }}">{{ item['title'] }}</a>

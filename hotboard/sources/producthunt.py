@@ -17,7 +17,7 @@ class ProductHuntFetcher(BaseFetcher):
     source_url = "https://www.producthunt.com"
 
     def fetch(self) -> list[HotItem]:
-        products = fetch_product_hunt_trending(limit=20)
+        products = fetch_product_hunt_trending(limit=30)
         items = []
         for i, product in enumerate(products):
             name = product.get("name", "")

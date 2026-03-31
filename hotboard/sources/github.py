@@ -17,7 +17,7 @@ class GitHubFetcher(BaseFetcher):
     source_url = "https://github.com/trending"
 
     def fetch(self) -> list[HotItem]:
-        repos = fetch_github_trending(limit=20)
+        repos = fetch_github_trending(limit=30)
         items = []
         for i, repo in enumerate(repos):
             name = repo.get("name", "")

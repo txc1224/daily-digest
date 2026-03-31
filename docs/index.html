@@ -8,32 +8,53 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-    --bg: #f5f5f7;
-    --card-bg: #ffffff;
-    --text: #1d1d1f;
-    --text-secondary: #86868b;
-    --accent: #ff3b30;
-    --border: #e5e5e7;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08);
-    --radius: 12px;
-    --blue: #007aff;
-    --green: #34c759;
-    --orange: #ff9500;
-    --red: #ff3b30;
+    --bg: #eff4ec;
+    --card-bg: #f8fbf5;
+    --text: #15201b;
+    --text-secondary: #5b6b61;
+    --accent: #c85b31;
+    --border: rgba(83, 107, 97, 0.18);
+    --shadow: 0 18px 44px rgba(28, 44, 34, 0.08);
+    --shadow-strong: 0 28px 72px rgba(23, 35, 28, 0.14);
+    --radius: 22px;
+    --blue: #2d5f9a;
+    --green: #2f8057;
+    --orange: #a56e1c;
+    --red: #a22c2c;
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
+    font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    background:
+        radial-gradient(circle at 12% 18%, rgba(222, 87, 40, 0.16), transparent 0 28%),
+        radial-gradient(circle at 88% 14%, rgba(32, 90, 72, 0.18), transparent 0 24%),
+        linear-gradient(180deg, rgba(255, 248, 239, 0.72), transparent 22%),
+        linear-gradient(135deg, #eff4ec 0%, #e2ece4 48%, #edf1ea 100%);
     color: var(--text);
     line-height: 1.5;
     min-height: 100vh;
+    position: relative;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(21, 32, 27, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(21, 32, 27, 0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.48), transparent 85%);
+    opacity: 0.45;
 }
 
 /* Header */
 header {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(20px);
+    background: rgba(248, 251, 245, 0.82);
+    backdrop-filter: blur(18px) saturate(135%);
     border-bottom: 1px solid var(--border);
     padding: 12px 24px;
     position: sticky;
@@ -142,11 +163,12 @@ main {
 
 /* Analysis section */
 .analysis-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(33, 89, 72, 0.95) 0%, rgba(200, 91, 49, 0.92) 100%);
+    border-radius: 28px;
     padding: 20px;
     margin-bottom: 20px;
     color: white;
+    box-shadow: var(--shadow-strong);
 }
 
 .analysis-section h2 { font-size: 16px; margin-bottom: 12px; }
@@ -445,42 +467,125 @@ main {
 .boards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 14px;
+    gap: 20px;
+    perspective: 1400px;
 }
 
 .boards-grid.collapsed { display: none; }
 
 /* Card */
 .board-card {
-    background: var(--card-bg);
-    border-radius: var(--radius);
+    --card-accent: rgba(200, 91, 49, 0.92);
+    --card-accent-soft: rgba(200, 91, 49, 0.12);
+    --pointer-x: 50%;
+    --pointer-y: 25%;
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    background:
+        linear-gradient(180deg, rgba(251, 253, 249, 0.96), rgba(242, 247, 241, 0.98)),
+        linear-gradient(120deg, rgba(255, 255, 255, 0.2), transparent);
+    border-radius: 26px;
     box-shadow: var(--shadow);
     overflow: hidden;
-    transition: box-shadow 0.2s;
+    transition: box-shadow 260ms var(--ease-out-quart), transform 260ms var(--ease-out-quart), border-color 220ms ease;
+    position: relative;
+    border: 1px solid rgba(83, 107, 97, 0.18);
+    transform: perspective(1400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translate3d(0, 0, 0);
+    transform-style: preserve-3d;
+    animation: card-enter 700ms var(--ease-out-expo) both;
+    animation-delay: calc(var(--card-index, 0) * 36ms);
 }
 
-.board-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.board-card::before,
+.board-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.board-card::before {
+    background:
+        radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 255, 255, 0.82), transparent 34%),
+        linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.24) 100%);
+    mix-blend-mode: screen;
+    opacity: 0;
+    transition: opacity 260ms ease;
+}
+
+.board-card::after {
+    inset: 0 0 auto;
+    height: 4px;
+    background: linear-gradient(90deg, var(--card-accent), color-mix(in srgb, var(--card-accent) 28%, white));
+    opacity: 0.88;
+}
+
+.board-card[data-group="tech"] {
+    --card-accent: rgba(32, 90, 72, 0.94);
+    --card-accent-soft: rgba(32, 90, 72, 0.12);
+}
+
+.board-card[data-group="world"] {
+    --card-accent: rgba(39, 77, 130, 0.92);
+    --card-accent-soft: rgba(39, 77, 130, 0.12);
+}
+
+.board-card[data-group="domestic"] {
+    --card-accent: rgba(200, 91, 49, 0.94);
+    --card-accent-soft: rgba(200, 91, 49, 0.12);
+}
+
+.board-card[data-state="failing"] { --card-accent: rgba(162, 44, 44, 0.95); }
+.board-card[data-state="stale"] { --card-accent: rgba(164, 110, 28, 0.94); }
+
+.board-card:hover {
+    box-shadow: var(--shadow-strong);
+    border-color: color-mix(in srgb, var(--card-accent) 30%, rgba(83, 107, 97, 0.24));
+}
+
+.board-card:hover::before,
+.board-card:focus-within::before { opacity: 1; }
 .board-card.hidden-platform { display: none; }
 
 .card-header {
     display: flex;
     align-items: center;
-    padding: 12px 14px 0;
-    gap: 6px;
+    padding: 16px 16px 0;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
 }
 
-.card-icon { font-size: 18px; }
-.card-title { font-size: 14px; font-weight: 600; flex: 1; }
+.card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), var(--card-accent-soft));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.card-title { font-size: 15px; font-weight: 700; flex: 1; letter-spacing: -0.02em; }
 
 .card-link {
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 13px;
+    min-width: 36px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 2px 4px;
-    border-radius: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.64);
+    border: 1px solid rgba(83, 107, 97, 0.16);
 }
 
-.card-link:hover { background: var(--bg); }
+.card-link:hover { background: var(--card-accent-soft); transform: translateY(-1px); }
 .card-meta {
     display: flex;
     align-items: center;
@@ -488,22 +593,216 @@ main {
     flex-wrap: wrap;
     font-size: 10px;
     color: var(--text-secondary);
-    padding: 2px 14px 6px;
+    padding: 4px 16px 8px;
+    position: relative;
+    z-index: 1;
 }
 
 .card-toolbar {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
-    padding: 0 14px 8px;
+    padding: 0 16px 12px;
+    position: relative;
+    z-index: 1;
 }
 
 .toolbar-pill {
     font-size: 10px;
     color: var(--text-secondary);
-    background: var(--bg);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(83, 107, 97, 0.14);
     border-radius: 999px;
-    padding: 3px 7px;
+    padding: 4px 8px;
+}
+
+.card-cover {
+    margin: 0 16px 12px;
+    padding: 16px 16px 15px;
+    border-radius: 20px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--card-accent) 18%, transparent), transparent 34%),
+        linear-gradient(135deg, rgba(255, 248, 240, 0.92), rgba(244, 249, 243, 0.94));
+    border: 1px solid color-mix(in srgb, var(--card-accent) 18%, rgba(83, 107, 97, 0.12));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.card-cover::before {
+    content: "";
+    position: absolute;
+    inset: auto -18% -28% auto;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--card-accent) 18%, white), transparent 68%);
+    pointer-events: none;
+}
+
+.card-cover-github {
+    background:
+        linear-gradient(145deg, rgba(27, 41, 35, 0.96), rgba(18, 27, 23, 0.94)),
+        radial-gradient(circle at top right, rgba(66, 182, 129, 0.18), transparent 38%);
+    border-color: rgba(95, 166, 133, 0.18);
+    color: rgba(244, 249, 243, 0.96);
+}
+
+.card-cover-github::before {
+    background:
+        radial-gradient(circle, rgba(95, 166, 133, 0.32), transparent 66%);
+    opacity: 0.85;
+}
+
+.card-cover-github .cover-kicker,
+.card-cover-github .cover-title,
+.card-cover-github .cover-title:hover,
+.card-cover-github .cover-summary {
+    color: rgba(244, 249, 243, 0.96);
+}
+
+.card-cover-github .cover-pill {
+    color: rgba(230, 242, 236, 0.88);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.card-cover-github .cover-summary {
+    color: rgba(213, 225, 219, 0.74);
+}
+
+.cover-github-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(160px, 0.8fr);
+    gap: 14px;
+    align-items: stretch;
+}
+
+.cover-github-main {
+    min-width: 0;
+}
+
+.cover-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cover-rail-item {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    text-decoration: none;
+    padding: 10px 10px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 220ms var(--ease-out-quart), border-color 160ms ease, background 160ms ease;
+}
+
+.cover-rail-item:hover {
+    transform: translateX(3px);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(95, 166, 133, 0.28);
+}
+
+.cover-rail-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: rgba(215, 235, 226, 0.78);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.cover-rail-title {
+    color: rgba(243, 248, 245, 0.92);
+    font-size: 12px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cover-kicker {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--card-accent) 74%, var(--text));
+}
+
+.cover-kicker::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: color-mix(in srgb, var(--card-accent) 64%, rgba(83, 107, 97, 0.2));
+}
+
+.cover-title {
+    position: relative;
+    z-index: 1;
+    display: block;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 22px;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    max-width: 13ch;
+    margin-bottom: 12px;
+    text-wrap: balance;
+}
+
+.cover-title:hover { color: color-mix(in srgb, var(--card-accent) 72%, var(--text)); }
+
+.cover-meta-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.cover-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--card-accent) 56%, var(--text));
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid color-mix(in srgb, var(--card-accent) 14%, rgba(83, 107, 97, 0.12));
+}
+
+.cover-summary {
+    position: relative;
+    z-index: 1;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+    max-width: 38ch;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .card-alert {
@@ -518,29 +817,37 @@ main {
 
 .hot-list {
     list-style: none;
-    padding: 0 10px 10px;
-    max-height: 440px;
+    padding: 0 12px 14px;
+    max-height: min(72vh, 760px);
     overflow-y: auto;
+    position: relative;
+    z-index: 1;
 }
 
 .hot-list::-webkit-scrollbar { width: 3px; }
 .hot-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .hot-item {
-    display: flex;
-    align-items: center;
-    padding: 5px 4px;
-    border-radius: 6px;
-    gap: 6px;
-    transition: background 0.15s;
+    display: grid;
+    grid-template-columns: 28px 16px minmax(0, 1fr) auto;
+    align-items: start;
+    padding: 10px 8px;
+    border-radius: 14px;
+    gap: 8px;
+    transition: background 160ms ease, transform 220ms var(--ease-out-quart), border-color 160ms ease;
+    border: 1px solid transparent;
 }
 
-.hot-item:hover { background: var(--bg); }
+.hot-item:hover {
+    background: rgba(255, 255, 255, 0.74);
+    transform: translate3d(3px, 0, 0);
+    border-color: color-mix(in srgb, var(--card-accent) 18%, rgba(83, 107, 97, 0.12));
+}
 .hot-item.search-hidden { display: none; }
 
 .item-rank {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -548,7 +855,9 @@ main {
     font-weight: 600;
     color: var(--text-secondary);
     flex-shrink: 0;
-    border-radius: 4px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.66);
+    border: 1px solid rgba(83, 107, 97, 0.12);
 }
 
 .top-1 .item-rank { background: #ff3b30; color: white; }
@@ -572,17 +881,34 @@ main {
     color: var(--text);
     text-decoration: none;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-overflow: initial;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-.item-title:hover { color: var(--accent); }
+.item-title:hover { color: color-mix(in srgb, var(--card-accent) 80%, var(--text)); }
 
 .item-hot {
     font-size: 10px;
     color: var(--text-secondary);
     flex-shrink: 0;
     white-space: nowrap;
+    border-radius: 999px;
+    padding: 5px 7px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(83, 107, 97, 0.12);
+}
+
+@keyframes card-enter {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: perspective(1400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translate3d(0, 0, 0) scale(1);
+    }
 }
 
 footer {
@@ -606,10 +932,30 @@ footer {
     .topic-card { min-width: auto; }
     .health-grid,
     .platform-trend-list { grid-template-columns: 1fr; }
+    .board-card,
+    .board-card:hover,
+    .hot-item:hover { transform: none; }
+    .card-icon { width: 36px; height: 36px; }
+    .card-cover { margin: 0 14px 12px; padding: 14px 14px 13px; border-radius: 18px; }
+    .cover-title { font-size: 18px; max-width: none; }
+    .cover-github-grid { grid-template-columns: 1fr; }
 }
 
 @media (min-width: 1200px) {
     .boards-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .board-card { transform: none !important; }
 }
     </style>
 </head>
@@ -752,7 +1098,8 @@ function renderBoard(board) {
     const status = (((currentData || {}).statuses || {})[board.platform]) || {};
     const time = board.updated_at ? board.updated_at.substring(11, 19) : '';
     const isHidden = hiddenPlatforms.includes(board.platform);
-    const itemsHtml = (board.items || []).slice(0, 20).map(item => {
+    const featured = (board.items || [])[0];
+    const itemsHtml = (board.items || []).map(item => {
         const topClass = item.rank <= 3 ? ` top-${item.rank}` : '';
         const hotHtml = item.hot_value ? `<span class="item-hot">${escapeHtml(item.hot_value)}</span>` : '';
         return `<li class="hot-item${topClass}" data-title="${escapeHtml(item.title).toLowerCase()}">
@@ -768,8 +1115,37 @@ function renderBoard(board) {
         status.last_duration_ms != null ? `<span class="toolbar-pill">${status.last_duration_ms}ms</span>` : '',
         status.last_item_count ? `<span class="toolbar-pill">${status.last_item_count} 条抓取</span>` : '',
     ].filter(Boolean).join('');
+    const cover = featured && board.platform === 'github' ? `<div class="card-cover card-cover-github">
+        <div class="cover-kicker">Featured Signal</div>
+        <div class="cover-github-grid">
+            <div class="cover-github-main">
+                <a href="${escapeHtml(featured.url)}" target="_blank" rel="noopener" class="cover-title" title="${escapeHtml(featured.title)}">${escapeHtml(featured.title)}</a>
+                <div class="cover-meta-row">
+                    ${featured.hot_value ? `<span class="cover-pill">${escapeHtml(featured.hot_value)}</span>` : ''}
+                    <span class="cover-pill">TOP ${featured.rank}</span>
+                    <span class="cover-pill">Repo Cover</span>
+                </div>
+                ${featured.category ? `<p class="cover-summary">${escapeHtml(featured.category)}</p>` : ''}
+            </div>
+            <div class="cover-rail">${(board.items || []).slice(1, 4).map(item => `
+                <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="cover-rail-item" title="${escapeHtml(item.title)}">
+                    <span class="cover-rail-rank">#${item.rank}</span>
+                    <span class="cover-rail-title">${escapeHtml(item.title)}</span>
+                </a>
+            `).join('')}</div>
+        </div>
+    </div>` : featured ? `<div class="card-cover">
+        <div class="cover-kicker">Featured Signal</div>
+        <a href="${escapeHtml(featured.url)}" target="_blank" rel="noopener" class="cover-title" title="${escapeHtml(featured.title)}">${escapeHtml(featured.title)}</a>
+        <div class="cover-meta-row">
+            ${featured.hot_value ? `<span class="cover-pill">${escapeHtml(featured.hot_value)}</span>` : ''}
+            <span class="cover-pill">TOP ${featured.rank}</span>
+            <span class="cover-pill">${escapeHtml(board.platform_name || '')}</span>
+        </div>
+        ${featured.category ? `<p class="cover-summary">${escapeHtml(featured.category)}</p>` : ''}
+    </div>` : '';
 
-    return `<div class="board-card${isHidden ? ' hidden-platform' : ''}" data-platform="${board.platform}">
+    return `<div class="board-card${isHidden ? ' hidden-platform' : ''}" data-platform="${board.platform}" data-group="${escapeHtml(board.group || '')}" data-state="${escapeHtml(state)}" style="--card-index:${board.platform_name ? board.platform_name.length : 0}">
         <div class="card-header">
             <span class="card-icon">${board.icon}</span>
             <span class="card-title">${escapeHtml(board.platform_name)}</span>
@@ -777,6 +1153,7 @@ function renderBoard(board) {
         </div>
         <div class="card-meta"><span class="status-pill status-${escapeHtml(state)}">${stateLabel(state)}</span><span>更新于 ${time}</span></div>
         <div class="card-toolbar">${toolbar}</div>
+        ${cover}
         <ul class="hot-list">${itemsHtml}</ul>
         ${status.last_error ? `<div class="card-alert">${escapeHtml(status.last_error)}</div>` : ''}
     </div>`;
@@ -808,6 +1185,35 @@ function renderData(data) {
 
     main.innerHTML = html || '<div class="loading-state"><h2>暂无数据</h2></div>';
     renderFilterPanel(data);
+    initBoardCardEffects();
+}
+
+function initBoardCardEffects() {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const cards = Array.from(document.querySelectorAll('.board-card'));
+
+    cards.forEach((card, index) => {
+        card.style.setProperty('--card-index', String(index));
+        if (!canHover || reduceMotion) return;
+
+        card.onpointermove = (event) => {
+            const rect = card.getBoundingClientRect();
+            const px = (event.clientX - rect.left) / rect.width;
+            const py = (event.clientY - rect.top) / rect.height;
+            card.style.setProperty('--pointer-x', `${(px * 100).toFixed(2)}%`);
+            card.style.setProperty('--pointer-y', `${(py * 100).toFixed(2)}%`);
+            card.style.setProperty('--tilt-x', `${((0.5 - py) * 6).toFixed(2)}deg`);
+            card.style.setProperty('--tilt-y', `${((px - 0.5) * 7).toFixed(2)}deg`);
+        };
+
+        card.onpointerleave = () => {
+            card.style.removeProperty('--pointer-x');
+            card.style.removeProperty('--pointer-y');
+            card.style.removeProperty('--tilt-x');
+            card.style.removeProperty('--tilt-y');
+        };
+    });
 }
 
 function renderFilterPanel(data) {

@@ -28,7 +28,7 @@ class Pojie52Fetcher(BaseFetcher):
 
         items = []
         links = soup.select("a.xst")
-        for i, a in enumerate(links[:20]):
+        for i, a in enumerate(links[:30]):
             title = a.get_text(strip=True)
             if not title:
                 continue
