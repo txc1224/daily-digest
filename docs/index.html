@@ -352,7 +352,31 @@ main {
 .rising-item .src { color: var(--text-faint); font-size: 10px; }
 
 /* ---------- Section headers ---------- */
-.status-section, .trend-section { padding: 18px; margin-bottom: 22px; }
+.status-section, .trend-section { padding: 18px; margin-bottom: 0; }
+.status-section { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none; }
+.trend-section { border-top-left-radius: 0; border-top-right-radius: 0; border-top: 1px solid var(--border); }
+
+/* ---------- Collapsible diagnostics ---------- */
+.diag-section { margin-bottom: 22px; overflow: hidden; }
+.diag-header {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; padding: 15px 18px;
+    background: none; border: none; cursor: pointer; text-align: left;
+    color: var(--text); font-family: var(--font-sans);
+    transition: background 0.2s;
+}
+.diag-header:hover { background: rgba(255,255,255,0.03); }
+.diag-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; }
+.diag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.diag-dot.good { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.diag-dot.warn { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+.diag-dot.bad { background: var(--red); box-shadow: 0 0 8px var(--red); animation: pulse 2.2s ease-in-out infinite; }
+.diag-summary { font-size: 12px; color: var(--text-secondary); font-family: var(--font-num); }
+.diag-chev { margin-left: auto; color: var(--text-faint); font-size: 12px; transition: transform 0.25s; }
+.diag-section.open .diag-chev { transform: rotate(180deg); }
+.diag-body { display: none; padding: 0 14px 14px; }
+.diag-section.open .diag-body { display: block; animation: fade-in 320ms ease both; }
+
 .section-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
 .section-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
 .section-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
@@ -801,6 +825,31 @@ function renderPlatformTrends(trendHistory) {
     </section>`;
 }
 
+/* 数据健康诊断:健康 + 平台趋势合并为一个默认折叠的区块 */
+function renderDiagnostics(health, trendHistory) {
+    const h = health || {};
+    const failing = h.failing_count || 0;
+    const stale = h.stale_count || 0;
+    const dotClass = failing > 0 ? 'bad' : (stale > 0 ? 'warn' : 'good');
+    const dotLabel = failing > 0 ? '有异常' : (stale > 0 ? '有过期' : '全部正常');
+    const inner = renderHealth(health, trendHistory) + renderPlatformTrends(trendHistory);
+    return `<section class="diag-section glass">
+        <button class="diag-header" onclick="toggleDiag(this)" aria-expanded="false">
+            <span class="diag-title"><span class="diag-dot ${dotClass}"></span>数据健康</span>
+            <span class="diag-summary">${h.healthy_count || 0}/${h.enabled_count || 0} 正常 · ${failing} 异常 · ${stale} 过旧 · ${dotLabel}</span>
+            <span class="diag-chev">▾</span>
+        </button>
+        <div class="diag-body">${inner}</div>
+    </section>`;
+}
+
+function toggleDiag(btn) {
+    const section = btn.closest('.diag-section');
+    if (!section) return;
+    const open = section.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
 function renderBoard(board) {
     const status = (((currentData || {}).statuses || {})[board.platform]) || {};
     const time = board.updated_at ? board.updated_at.substring(11, 19) : '';
@@ -885,8 +934,7 @@ function renderData(data) {
     let html = '';
     html += renderHero(data.health, data.analysis);
     html += renderRising(data.rising_topics);
-    html += renderHealth(data.health, data.trend_history);
-    html += renderPlatformTrends(data.trend_history);
+    html += renderDiagnostics(data.health, data.trend_history);
 
     const grouped = data.grouped || {};
     for (const [gk, group] of Object.entries(grouped)) {
@@ -998,12 +1046,21 @@ async function loadHistory() {
         const history = await res.json();
         const select = document.getElementById('history-select');
         history.sort((a, b) => b.id.localeCompare(a.id));
+        // 按天聚合:同一天只保留 id 最大(最新)的一条
+        const byDay = new Map();
         for (const item of history) {
+            const day = (item.id || '').slice(0, 10);
+            if (!byDay.has(day)) byDay.set(day, item); // 已按新→旧排序,首个即当天最新
+        }
+        // 仅保留最近 MAX_HISTORY_DAYS 天,避免下拉过长
+        const MAX_HISTORY_DAYS = 14;
+        const daily = Array.from(byDay.values()).slice(0, MAX_HISTORY_DAYS);
+        for (const item of daily) {
             const opt = document.createElement('option');
             opt.value = item.file;
             const p = item.id.split('-');
-            const summary = item.failing_count ? ` · 异常 ${item.failing_count}` : '';
-            opt.textContent = `${p[1]}-${p[2]} ${p[3]}:00${summary}`;
+            const summary = item.failing_count ? ` · 异常${item.failing_count}` : '';
+            opt.textContent = `${p[1]}/${p[2]} ${p[3]}时${summary}`;
             select.appendChild(opt);
         }
     } catch (e) {}
