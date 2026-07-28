@@ -319,6 +319,72 @@ def compute_trends(boards: dict, prev_snapshot: dict | None) -> list:
     return rising_topics[:15]
 
 
+def build_mini_payload(
+    *,
+    generated_at: str,
+    snapshot_id: str,
+    grouped: dict,
+    statuses: dict,
+    health: dict,
+    rising_topics: list,
+) -> dict:
+    mini_groups = []
+    for group_key in GROUP_ORDER:
+        group = grouped.get(group_key)
+        if not group:
+            continue
+        platforms = []
+        for board in group.get("boards", []):
+            platform_id = board.get("platform")
+            status = statuses.get(platform_id, {})
+            platforms.append({
+                "id": platform_id,
+                "name": board.get("platform_name", platform_id),
+                "icon": board.get("icon", ""),
+                "group": group_key,
+                "updated_at": board.get("updated_at", ""),
+                "status": status.get("state", "unknown"),
+                "item_count": len(board.get("items", [])),
+                "items": board.get("items", [])[:8],
+            })
+
+        mini_groups.append({
+            "key": group_key,
+            "title": group.get("name", group_key),
+            "platforms": platforms,
+        })
+
+    home_cards = []
+    for group in mini_groups:
+        top_items = []
+        for platform in group["platforms"][:3]:
+            top_items.extend(
+                {
+                    "platform": platform["id"],
+                    "platform_name": platform["name"],
+                    "title": item.get("title", ""),
+                    "url": item.get("url", ""),
+                    "rank": item.get("rank"),
+                    "hot": item.get("hot"),
+                }
+                for item in platform["items"][:2]
+            )
+        home_cards.append({
+            "key": group["key"],
+            "title": group["title"],
+            "items": top_items[:5],
+        })
+
+    return {
+        "generated_at": generated_at,
+        "snapshot_id": snapshot_id,
+        "health": health,
+        "home_cards": home_cards,
+        "groups": mini_groups,
+        "rising_topics": rising_topics[:10],
+    }
+
+
 def main():
     enabled = [k for k, v in PLATFORMS.items() if v[3] and k in ALL_FETCHERS]
     print(f"Fetching {len(enabled)} platforms: {', '.join(enabled)}")
@@ -413,6 +479,14 @@ def main():
         "health": health,
         "trend_history": trend_history,
     }
+    mini_output = build_mini_payload(
+        generated_at=generated_at,
+        snapshot_id=snapshot_id,
+        grouped=grouped,
+        statuses=statuses,
+        health=health,
+        rising_topics=rising_topics,
+    )
 
     # 1. 写入最新 boards.json
     latest_path = os.path.join(base_dir, "boards.json")
@@ -423,6 +497,11 @@ def main():
     status_path = os.path.join(base_dir, "status.json")
     with open(status_path, "w", encoding="utf-8") as f:
         json.dump(status_output, f, ensure_ascii=False, indent=2)
+
+    # 1.2 写入小程序消费用的轻量数据
+    mini_path = os.path.join(base_dir, "miniapp.json")
+    with open(mini_path, "w", encoding="utf-8") as f:
+        json.dump(mini_output, f, ensure_ascii=False, indent=2)
 
     # 2. 写入历史快照
     snapshot_path = os.path.join(history_dir, f"{snapshot_id}.json")
@@ -453,6 +532,7 @@ def main():
     print(f"\nDone! {len(boards)} platforms")
     print(f"  latest   -> {latest_path}")
     print(f"  status   -> {status_path}")
+    print(f"  miniapp  -> {mini_path}")
     print(f"  snapshot -> {snapshot_path}")
     print(f"  history  -> {len(history_index)} snapshots")
     print(f"  analysis -> {topic_count} cross-platform topics")
