@@ -230,102 +230,57 @@ main {
 .platform-toggle:hover { border-color: var(--border-strong); transform: translateY(-1px); }
 .platform-toggle.hidden { opacity: 0.35; text-decoration: line-through; }
 
-/* ---------- HERO / focal ---------- */
+/* ---------- Hero / 顶部焦点 ---------- */
 .hero {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    margin-bottom: 18px;
+    border-radius: 20px;
     position: relative;
     overflow: hidden;
-    border-radius: 30px;
-    border: 1px solid var(--border-strong);
-    background:
-        radial-gradient(80% 120% at 8% 0%, rgba(255, 122, 69, 0.18), transparent 55%),
-        radial-gradient(70% 120% at 95% 10%, rgba(34, 211, 238, 0.16), transparent 55%),
-        radial-gradient(60% 90% at 60% 110%, rgba(167, 139, 250, 0.14), transparent 60%),
-        linear-gradient(160deg, #12141f 0%, #0b0d16 100%);
-    box-shadow: var(--shadow-strong);
-    padding: 30px 30px 24px;
-    margin-bottom: 22px;
 }
 .hero::before {
     content: "";
     position: absolute; inset: 0;
-    background-image:
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-    background-size: 30px 30px;
-    mask-image: radial-gradient(ellipse 80% 90% at 30% 0%, rgba(0,0,0,0.5), transparent 75%);
+    background:
+        radial-gradient(60% 140% at 90% 0%, rgba(34, 211, 238, 0.10), transparent 60%),
+        radial-gradient(50% 120% at 8% 100%, rgba(255, 122, 69, 0.10), transparent 60%);
     pointer-events: none;
 }
-.hero-top { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.hero-top { position: relative; z-index: 1; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; width: 100%; }
 .hero-kicker {
     display: inline-flex; align-items: center; gap: 8px;
     font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: #ffc9ab; font-weight: 700; margin-bottom: 14px;
+    color: #ffc9ab; font-weight: 700; margin-bottom: 6px;
 }
-.hero-kicker::before { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); }
+.hero-kicker::before { content: ""; width: 22px; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); }
 .hero-title {
-    font-size: clamp(30px, 4.6vw, 50px);
-    line-height: 1.02;
+    font-size: clamp(19px, 2.4vw, 26px);
+    line-height: 1.1;
     font-weight: 800;
-    letter-spacing: -0.045em;
-    max-width: 16ch;
-    background: linear-gradient(120deg, #ffffff 20%, #ffe3d3 55%, #ffb08a 90%);
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+    background: linear-gradient(120deg, #ffffff 20%, #ffe3d3 60%, #ffb08a 95%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
-.hero-sub { color: var(--text-secondary); font-size: 14px; max-width: 52ch; margin-top: 12px; }
-
-.hero-metrics { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-copy { display: flex; flex-direction: column; min-width: 0; }
+.hero-metrics { display: flex; gap: 10px; margin-left: auto; position: relative; z-index: 1; }
 .hud {
-    min-width: 118px;
-    padding: 14px 16px;
-    border-radius: 18px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--border);
-    backdrop-filter: blur(8px);
 }
-.hud-label { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 0.04em; }
+.hud-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
 .hud-dot { width: 6px; height: 6px; border-radius: 50%; }
-.hud-value { font-family: var(--font-num); font-size: 30px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.hud-value { font-family: var(--font-num); font-size: 16px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .hud.good .hud-value { color: var(--green); } .hud.good .hud-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
 .hud.warn .hud-value { color: var(--red); } .hud.warn .hud-dot { background: var(--red); box-shadow: 0 0 8px var(--red); }
 .hud.idle .hud-value { color: var(--orange); } .hud.idle .hud-dot { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
-
-/* cross-platform topics inside hero */
-.hero-topics { position: relative; z-index: 1; margin-top: 22px; }
-.hero-topics-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.06em; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-.topic-cards { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-.topic-cards::-webkit-scrollbar { height: 4px; }
-.topic-cards::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
-
-.topic-card {
-    position: relative;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 14px 16px;
-    min-width: 264px;
-    max-width: 264px;
-    flex-shrink: 0;
-    transition: transform 240ms var(--ease-out-quart), border-color 200ms ease, background 200ms ease;
-}
-.topic-card:hover { transform: translateY(-3px); border-color: var(--border-strong); background: rgba(255,255,255,0.09); }
-.topic-card .topic-name { font-size: 15px; font-weight: 700; margin-bottom: 5px; letter-spacing: -0.01em; }
-.topic-card .topic-summary {
-    font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-.topic-platforms { display: flex; gap: 4px; flex-wrap: wrap; }
-.topic-platform-tag {
-    font-size: 10px; padding: 3px 7px; border-radius: 6px;
-    background: rgba(255,255,255,0.1); color: var(--text-secondary); font-weight: 600;
-}
-.heat-bar { height: 4px; background: rgba(255,255,255,0.12); border-radius: 3px; margin-top: 12px; overflow: hidden; }
-.heat-bar-fill {
-    height: 100%; border-radius: 3px; width: 0;
-    background: linear-gradient(90deg, var(--orange), var(--accent), var(--pink));
-    box-shadow: 0 0 12px rgba(255, 122, 69, 0.6);
-    transition: width 900ms var(--ease-out-expo);
-}
 
 /* ---------- Rising ticker ---------- */
 .rising-section { margin-bottom: 22px; overflow: hidden; }
@@ -506,7 +461,10 @@ main {
 
 /* ---------- Card cover (featured) ---------- */
 .card-cover {
-    margin: 0 16px 12px; padding: 16px; border-radius: 18px; position: relative; z-index: 1; overflow: hidden;
+    margin: 0 16px 12px; padding: 14px 16px; border-radius: 18px; position: relative; z-index: 1; overflow: hidden;
+    /* 固定等高:无论标题几行/有无 rail,外观高度完全一致 */
+    height: 178px;
+    display: flex; flex-direction: column;
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--card-accent) 26%, transparent), transparent 55%),
         linear-gradient(150deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
@@ -532,12 +490,14 @@ main {
     -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     color: var(--text); text-decoration: none;
     font-size: 19px; line-height: 1.22; font-weight: 700; letter-spacing: -0.025em;
-    margin-bottom: 12px; overflow-wrap: anywhere;
+    margin-bottom: 8px; overflow-wrap: anywhere;
+    /* 恒定 3 行高度:短标题也占位,保证封面等高 */
+    min-height: 69px;
     transition: color 0.2s;
 }
 .cover-title:hover { color: color-mix(in srgb, var(--card-accent) 70%, #fff); }
 
-.cover-meta-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.cover-meta-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
 .cover-pill {
     display: inline-flex; align-items: center; min-height: 24px; padding: 4px 9px; border-radius: 999px;
     font-size: 10px; letter-spacing: 0.04em; font-weight: 600;
@@ -548,12 +508,15 @@ main {
 .cover-summary {
     position: relative; z-index: 1; color: var(--text-secondary); font-size: 12px; line-height: 1.5; margin-top: 8px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+    /* 恒定 2 行高度:即使无摘要也占位,保证封面等高 */
+    height: 36px;
 }
+.cover-summary:empty { visibility: hidden; }
 .card-cover-github .cover-summary { color: rgba(213, 230, 220, 0.7); }
 
-.cover-github-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(150px, 0.85fr); gap: 14px; align-items: start; }
-.cover-github-main { min-width: 0; }
-.cover-rail { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.cover-github-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(150px, 0.85fr); gap: 14px; align-items: start; flex: 1; min-height: 0; }
+.cover-github-main { min-width: 0; display: flex; flex-direction: column; height: 100%; }
+.cover-rail { display: flex; flex-direction: column; gap: 7px; min-width: 0; overflow: hidden; }
 .cover-rail-item {
     display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 9px; align-items: start; text-decoration: none;
     padding: 8px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
@@ -562,6 +525,9 @@ main {
 .cover-rail-item:hover { transform: translateX(3px); background: rgba(255,255,255,0.09); border-color: rgba(61,220,151,0.3); }
 .cover-rail-rank { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: 0.04em; color: rgba(61,220,151,0.9); background: rgba(61,220,151,0.12); font-family: var(--font-num); }
 .cover-rail-title { color: rgba(240,246,242,0.92); font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+
+.cover-kicker { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 11px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: color-mix(in srgb, var(--card-accent) 80%, #fff); font-weight: 700; }
+.cover-kicker::before { content: ""; width: 22px; height: 1px; background: color-mix(in srgb, var(--card-accent) 70%, transparent); }
 
 .card-alert { margin: 0 14px 12px; padding: 9px 11px; border-radius: 12px; background: rgba(255,93,93,0.1); border: 1px solid rgba(255,93,93,0.24); color: #ff9c9c; font-size: 11px; line-height: 1.45; position: relative; z-index: 1; overflow-wrap: anywhere; }
 
@@ -638,15 +604,14 @@ footer a:hover { color: var(--text); }
     .boards-grid { grid-template-columns: 1fr; }
     .subtitle { display: none; }
     .search-box { width: 130px; }
-    .hero { padding: 22px 18px 18px; border-radius: 24px; }
-    .hero-title { max-width: none; }
-    .hero-top { flex-direction: column; align-items: flex-start; }
-    .topic-card { min-width: 230px; max-width: 230px; }
+    .hero { padding: 14px 16px; }
+    .hero-title { white-space: normal; }
+    .hero-metrics { margin-left: 0; width: 100%; }
     .health-grid, .platform-trend-list { grid-template-columns: 1fr; }
     .board-card, .board-card:hover, .hot-item:hover { transform: none; }
     .cover-github-grid { grid-template-columns: 1fr; }
     .cover-rail { display: none; }
-    .hud { min-width: 100px; flex: 1; }
+    .hud { flex: 1; justify-content: center; }
 }
 @media (min-width: 1280px) {
     .boards-grid { grid-template-columns: repeat(4, 1fr); }
@@ -714,38 +679,21 @@ function stateLabel(state) {
     return '正常';
 }
 
-/* 顶部焦点区:跨平台热点 + 平台健康 HUD */
-function renderHero(health, analysis) {
-    const topics = (analysis || {}).cross_platform_topics || [];
+/* 顶部简洁标题栏:一眼聚焦,不堆叠过多信息 */
+function renderHero(health) {
     const h = health || {};
-    const hud = `
-        <div class="hero-metrics">
-            <div class="hud good"><span class="hud-label"><span class="hud-dot"></span>健康平台</span><div class="hud-value">${h.healthy_count || 0}<span style="font-size:15px;color:var(--text-faint)">/${h.enabled_count || 0}</span></div></div>
-            <div class="hud warn"><span class="hud-label"><span class="hud-dot"></span>异常平台</span><div class="hud-value">${h.failing_count || 0}</div></div>
-            <div class="hud idle"><span class="hud-label"><span class="hud-dot"></span>缓存过旧</span><div class="hud-value">${h.stale_count || 0}</div></div>
-        </div>`;
-    const topicsHtml = topics.length ? `
-        <div class="hero-topics">
-            <div class="hero-topics-label">🔥 跨平台热点 · 同一话题正在多个平台发酵</div>
-            <div class="topic-cards">${topics.map(t => `
-                <div class="topic-card">
-                    <div class="topic-name">${escapeHtml(t.topic)}</div>
-                    <div class="topic-summary">${escapeHtml(t.summary)}</div>
-                    <div class="topic-platforms">${(t.platforms || []).map(p => `<span class="topic-platform-tag">${escapeHtml(p)}</span>`).join('')}</div>
-                    <div class="heat-bar"><div class="heat-bar-fill" data-heat="${t.heat_score || 0}"></div></div>
-                </div>`).join('')}
-            </div>
-        </div>` : '';
-    return `<section class="hero">
+    return `<section class="hero glass">
         <div class="hero-top">
             <div class="hero-copy">
-                <div class="hero-kicker">Signal Monitor · 全网热榜聚合</div>
-                <h2 class="hero-title">一眼看穿，今天全网在沸腾什么。</h2>
-                <p class="hero-sub">跨平台热点、技术社区精选与抓取健康状态，全部汇到同一块屏上。</p>
+                <div class="hero-kicker">Signal Monitor</div>
+                <h2 class="hero-title">全网热榜 · 一屏速览</h2>
             </div>
-            ${hud}
+            <div class="hero-metrics">
+                <div class="hud good"><span class="hud-label"><span class="hud-dot"></span>健康</span><div class="hud-value">${h.healthy_count || 0}/${h.enabled_count || 0}</div></div>
+                <div class="hud warn"><span class="hud-label"><span class="hud-dot"></span>异常</span><div class="hud-value">${h.failing_count || 0}</div></div>
+                <div class="hud idle"><span class="hud-label"><span class="hud-dot"></span>过旧</span><div class="hud-value">${h.stale_count || 0}</div></div>
+            </div>
         </div>
-        ${topicsHtml}
     </section>`;
 }
 
@@ -887,7 +835,7 @@ function renderBoard(board) {
                     <span class="cover-pill">TOP ${featured.rank}</span>
                     <span class="cover-pill">Repo Cover</span>
                 </div>
-                ${featured.category ? `<p class="cover-summary">${escapeHtml(featured.category)}</p>` : ''}
+                ${featured.category ? `<p class="cover-summary">${escapeHtml(featured.category)}</p>` : '<p class="cover-summary"></p>'}
             </div>
             <div class="cover-rail">${(board.items || []).slice(1, 4).map(item => `
                 <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="cover-rail-item" title="${escapeHtml(item.title)}">
@@ -904,7 +852,7 @@ function renderBoard(board) {
             <span class="cover-pill">TOP ${featured.rank}</span>
             <span class="cover-pill">${escapeHtml(board.platform_name || '')}</span>
         </div>
-        ${featured.category ? `<p class="cover-summary">${escapeHtml(featured.category)}</p>` : ''}
+        ${featured.category ? `<p class="cover-summary">${escapeHtml(featured.category)}</p>` : '<p class="cover-summary"></p>'}
     </div>` : '';
 
     return `<div class="board-card${isHidden ? ' hidden-platform' : ''}" data-platform="${board.platform}" data-group="${escapeHtml(board.group || '')}" data-state="${escapeHtml(state)}" style="--card-index:${board.platform_name ? board.platform_name.length : 0}">
@@ -932,7 +880,7 @@ function renderData(data) {
     }
 
     let html = '';
-    html += renderHero(data.health, data.analysis);
+    html += renderHero(data.health);
     html += renderRising(data.rising_topics);
     html += renderDiagnostics(data.health, data.trend_history);
 
@@ -948,18 +896,6 @@ function renderData(data) {
     main.innerHTML = html || '<div class="loading-state"><h2>暂无数据</h2></div>';
     renderFilterPanel(data);
     initBoardCardEffects();
-    animateHeatBars();
-}
-
-/* 触发热度条与入场后的宽度动画 */
-function animateHeatBars() {
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            document.querySelectorAll('.heat-bar-fill').forEach(el => {
-                el.style.width = (el.getAttribute('data-heat') || 0) + '%';
-            });
-        });
-    });
 }
 
 /* 展开/收起单张卡片的完整榜单 */

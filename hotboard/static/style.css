@@ -432,7 +432,10 @@ main {
 
 /* ---------- Card cover ---------- */
 .card-cover {
-    margin: 0 16px 12px; padding: 16px; border-radius: 18px; position: relative; z-index: 1; overflow: hidden;
+    margin: 0 16px 12px; padding: 14px 16px; border-radius: 18px; position: relative; z-index: 1; overflow: hidden;
+    /* 固定等高:无论标题几行/有无 rail,外观高度完全一致 */
+    height: 178px;
+    display: flex; flex-direction: column;
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--card-accent) 26%, transparent), transparent 55%),
         linear-gradient(150deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
@@ -450,9 +453,9 @@ main {
         linear-gradient(150deg, #101a15 0%, #0b120e 100%);
     border-color: rgba(61,220,151,0.22);
 }
-.cover-github-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(150px, 0.85fr); gap: 14px; align-items: start; }
-.cover-github-main { min-width: 0; }
-.cover-rail { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.cover-github-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(150px, 0.85fr); gap: 14px; align-items: start; flex: 1; min-height: 0; }
+.cover-github-main { min-width: 0; display: flex; flex-direction: column; height: 100%; }
+.cover-rail { display: flex; flex-direction: column; gap: 7px; min-width: 0; overflow: hidden; }
 .cover-rail-item {
     display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 9px; align-items: start; text-decoration: none;
     padding: 8px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
@@ -470,12 +473,14 @@ main {
     -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     color: var(--text); text-decoration: none;
     font-size: 19px; line-height: 1.22; font-weight: 700; letter-spacing: -0.025em;
-    margin-bottom: 12px; overflow-wrap: anywhere;
+    margin-bottom: 8px; overflow-wrap: anywhere;
+    /* 恒定 3 行高度:短标题也占位,保证封面等高 */
+    min-height: 69px;
     transition: color 0.2s;
 }
 .cover-title:hover { color: color-mix(in srgb, var(--card-accent) 70%, #fff); }
 
-.cover-meta-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.cover-meta-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
 .cover-pill {
     display: inline-flex; align-items: center; min-height: 24px; padding: 4px 9px; border-radius: 999px;
     font-size: 10px; letter-spacing: 0.04em; font-weight: 600;
@@ -486,7 +491,10 @@ main {
 .cover-summary {
     position: relative; z-index: 1; color: var(--text-secondary); font-size: 12px; line-height: 1.5; margin-top: 8px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+    /* 恒定 2 行高度:即使无摘要也占位,保证封面等高 */
+    height: 36px;
 }
+.cover-summary:empty { visibility: hidden; }
 .card-cover-github .cover-summary { color: rgba(213, 230, 220, 0.7); }
 
 /* ---------- Hot list ---------- */

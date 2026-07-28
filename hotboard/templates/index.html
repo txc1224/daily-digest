@@ -229,6 +229,8 @@
                                 </div>
                                 {% if featured.get('category') %}
                                 <p class="cover-summary">{{ featured.get('category') }}</p>
+                                {% else %}
+                                <p class="cover-summary"></p>
                                 {% endif %}
                             </div>
                             <div class="cover-rail">
@@ -251,6 +253,8 @@
                         </div>
                         {% if featured.get('category') %}
                         <p class="cover-summary">{{ featured.get('category') }}</p>
+                        {% else %}
+                        <p class="cover-summary"></p>
                         {% endif %}
                         {% endif %}
                     </div>
