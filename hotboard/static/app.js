@@ -1,5 +1,6 @@
 // 自动刷新间隔（毫秒）
 const REFRESH_INTERVAL = 5 * 60 * 1000;
+const VISIBLE_COUNT = 8;
 const filterState = {
     group: 'all',
     status: 'all',
@@ -23,15 +24,31 @@ function updateTime() {
 }
 
 function renderHotList(items = []) {
-    return items.map(item => {
+    return items.map((item, idx) => {
         const topClass = item.rank <= 3 ? ` top-${item.rank}` : '';
+        const extraClass = idx >= VISIBLE_COUNT ? ' is-extra' : '';
         const hotHtml = item.hot_value ? `<span class="item-hot">${escapeHtml(item.hot_value)}</span>` : '';
-        return `<li class="hot-item${topClass}">
+        return `<li class="hot-item${topClass}${extraClass}">
             <span class="item-rank">${item.rank}</span>
             <a href="${escapeHtml(item.url)}" target="_blank" class="item-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</a>
             ${hotHtml}
         </li>`;
     }).join('');
+}
+
+function renderListToggle(count) {
+    const overflow = count - VISIBLE_COUNT;
+    if (overflow <= 0) return '';
+    return `<button class="list-toggle" type="button" data-overflow="${overflow}"><span class="lt-label">展开其余 ${overflow} 条</span><span class="chev">▾</span></button>`;
+}
+
+function toggleList(btn) {
+    const card = btn.closest('.board-card');
+    if (!card) return;
+    const expanded = card.classList.toggle('expanded');
+    const extra = Number(btn.getAttribute('data-overflow')) || card.querySelectorAll('.hot-item.is-extra').length;
+    const label = btn.querySelector('.lt-label');
+    if (label) label.textContent = expanded ? '收起榜单' : `展开其余 ${extra} 条`;
 }
 
 function renderCardCover(board) {
@@ -177,10 +194,13 @@ async function autoRefresh() {
                 alertBox.remove();
             }
 
-            // 更新列表
+            // 更新列表 + 展开按钮
             const list = card.querySelector('.hot-list');
             if (!list || !board.items) continue;
             list.innerHTML = renderHotList(board.items);
+            const oldToggle = card.querySelector('.list-toggle');
+            if (oldToggle) oldToggle.remove();
+            list.insertAdjacentHTML('afterend', renderListToggle(board.items.length));
         }
 
         renderHealth(statusPayload.health);
@@ -418,4 +438,8 @@ updateTime();
 initResponsivePanels();
 initFilters();
 initBoardCardEffects();
+document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('.list-toggle');
+    if (toggle) toggleList(toggle);
+});
 setInterval(autoRefresh, REFRESH_INTERVAL);

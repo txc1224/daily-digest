@@ -257,7 +257,7 @@
                     {% endif %}
                     <ul class="hot-list">
                         {% for item in board['items'] %}
-                        <li class="hot-item {% if item['rank'] <= 3 %}top-{{ item['rank'] }}{% endif %}">
+                        <li class="hot-item {% if item['rank'] <= 3 %}top-{{ item['rank'] }}{% endif %}{% if loop.index0 >= 8 %} is-extra{% endif %}">
                             <span class="item-rank">{{ item['rank'] }}</span>
                             <a href="{{ item['url'] }}" target="_blank" class="item-title" title="{{ item['title'] }}">{{ item['title'] }}</a>
                             {% if item['hot_value'] %}
@@ -266,6 +266,9 @@
                         </li>
                         {% endfor %}
                     </ul>
+                    {% if board['items']|length > 8 %}
+                    <button class="list-toggle" type="button" data-overflow="{{ board['items']|length - 8 }}"><span class="lt-label">展开其余 {{ board['items']|length - 8 }} 条</span><span class="chev">▾</span></button>
+                    {% endif %}
                     {% if status.get('last_error') %}
                     <div class="card-alert">{{ status.get('last_error') }}</div>
                     {% endif %}
